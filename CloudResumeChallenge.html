@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Andrew DeFever | Cloud Resume</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.2rem;
+    }
+    h2 {
+      margin-top: 2rem;
+    }
+    a {
+      color: #007acc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .section {
+      margin-bottom: 1.5rem;
+    }
+    ul {
+      padding-left: 1.2rem;
+    }
+    .badges img {
+      height: 80px;
+      margin-right: 1rem;
+    }
+    .cert-download {
+      margin-top: 1rem;
+    }
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+    h1, h2 {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section {
+      animation: fadeInUp 0.6s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <nav style="text-align:center; margin-bottom: 2rem; font-weight: bold;">
+    <a href="#about">About</a> |
+    <a href="#certs">Certifications</a> |
+    <a href="#skills">Skills</a> |
+    <a href="#projects">Projects</a> |
+    <a href="#experience">Experience</a> |
+    <a href="#education">Education</a>
+  </nav>
+  <header>
+    <h1>Andrew DeFever</h1>
+    <p>AWS Certified | Cloud Resume Challenge</p>
+    <p>
+      <a href="mailto:AndrewDeFever@gmail.com">AndrewDeFever@gmail.com</a> |
+      <a href="https://github.com/AndrewDeFever" target="_blank">GitHub</a> |
+      <a href="https://www.linkedin.com/in/andrewdefever/" target="_blank">LinkedIn</a>
+    </p>
+  </header>
+
+  <section class="section" id="about">
+    <h2>About This Site</h2>
+    <p>This resume site was built as part of the <strong>Cloud Resume Challenge</strong>. It is:</p>
+    <ul>
+      <li>Hosted on Amazon S3 with static website hosting</li>
+      <li>Delivered through CloudFront (CDN)</li>
+      <li>Integrated with API Gateway and Lambda (Python) to log IP address</li>
+      <li>Stores logs in DynamoDB</li>
+    </ul>
+    <p><a href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank">View the GitHub repository</a></p>
+  </section>
+
+  <section class="section" id="certs">
+    <h2>Certifications</h2>
+    <div class="badges">
+      <a href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank">
+        <img src="./CloudResumeChallenge/aws-certified-cloud-practitioner.png" alt="AWS Cloud Practitioner Badge" />
+      </a>
+      <a href="./CloudResumeChallenge/CompTIA Security+ Certification.pdf" target="_blank">
+        <img src="./CloudResumeChallenge/comptia-security-ce-certification.png" alt="CompTIA Security+ Badge" />
+      </a>
+    </div>
+    <ul>
+      <li>AWS Certified Cloud Practitioner – July 15, 2025</li>
+      <li>CompTIA Security+ (SY0-701) – June 17, 2025</li>
+    </ul>
+  </section>
+
+  <section class="section" id="skills">
+    <h2>Technical Skills</h2>
+    <ul>
+      <li>AWS Services – S3, CloudFront, Route 53, IAM, ACM, TLS, Bucket Policies, DynamoDB, etc.</li>
+      <li>Networking – IP/Ethernet, BGP, MPLS, IPVPN, Eline, VPLS, VLANs, firewall policy management, DNS (BIND)</li>
+      <li>Systems – Linux CLI, system admin, SNMP monitoring, Netcool, Cacti, SolarWinds, Infinera, Cisco IOS/NX-OS, JunOS</li>
+	  <li>Security – CompTIA Security+ certified, experience mitigating DDoS via RADware (DefensePro, DefenseFlow), IAM principles, secure traffic routing via GRE tunneling</li>
+    </ul>
+  </section>
+
+  <section class="section" id="projects">
+    <h2>Projects</h2>
+    <ul>
+      <li><strong>Cloud Resume Challenge</strong> – Hosted resume site on S3 with CloudFront, secured via ACM, and built a visitor tracker using API Gateway, Lambda (Python), and DynamoDB. Packaged Lambda with external dependencies via CloudShell and deployed securely using IAM and environment variables.</li>
+    </ul>
+  </section>
+
+  <section class="section" id="experience">
+    <h2>Experience</h2>
+    <ul>
+      <li><strong>Systems Analyst II – OneGas</strong> (11/2021 – Present)<br />
+        - Monitor, support, and troubleshoot applications and connectivity across business systems.<br />
+        - Collaborate with cross-functional teams to support operational readiness.<br />
+        - Coordinate with vendors and stakeholders to ensure system reliability.<br />
+      </li>
+      <li><strong>Lead IP/Ethernet NCC Technician – Zayo</strong> (04/2016 – 02/2018)<br />
+        - Provided advanced troubleshooting for IP and Ethernet circuits across a national network.<br />
+        - Configured and maintained Juniper, Cisco, Alcatel-Lucent routers, firewalls, and DDoS mitigation platforms.<br />
+        - Trained and mentored Tier 1 and Tier 2 technicians, improving resolution times.<br />
+	  </li>
+<li><strong>IP/Ethernet NCC Technician – Zayo</strong> (11/2014 – 04/2016)<br />
+        - Diagnosed and resolved faults across IP, IP VPN, VPLS, E-Line, and PDN circuits, prioritizing rapid time-to-resolution.<br />
+        - Executed RFC 2544 throughput testing with field techs and remote NID configuration to validate circuit performance.<br />
+        - Modified BGP import policies, updated DNS zone files, and monitored network health using Netcool, Cacti, and other SNMP-based tools.</br>
+		- Communicated directly with customers via phone and email to provide real-time updates, explain troubleshooting steps, and ensure issue resolution satisfaction.</br>
+		- Provisioned and modified circuit configurations to support service changes, custom requests, and outage remediation.<br />
+      </li>
+<li><strong>Lead Infrastructure NCC Technician – Zayo</strong> (12/2012 – 11/2014)<br />
+        - Assisting teammates in troubleshooting and repairing dark fiber circuits within a specific time frame.<br />
+        - Monitoring and responding to and environmental issues in a timely manner to minimize impact to any circuits traversing through various locations nationwide.<br />
+		- Monitoring platforms (Infinera, Fujitsu, Nortel, Dantel, Cisco, NetGuardian, JDSU, Solarwinds).<br />
+      </li> 
+    </ul>
+  </section>
+
+  <section class="section" id="education">
+    <h2>Education</h2>
+    <ul>
+      <li><strong>Bachelor of Psychology</strong>, Minor in Philosophy – May 2012</li>
+    </ul>
+  </section>
+
+  <section class="section cert-download">
+    <h2>Download Resume</h2>
+    <p><a href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.docx" download>Download as Word Document</a></p>
+  </section>
+  <script>
+  fetch("https://njx3tbb522.execute-api.us-east-1.amazonaws.com/track", {
+    method: "POST"
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("GeoTracker success:", data);
+  })
+  .catch(error => {
+    console.error("GeoTracker error:", error);
+  });
+  </script> 
+</body>
+</html>
