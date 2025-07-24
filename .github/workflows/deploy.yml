@@ -25,7 +25,7 @@ jobs:
 
     - name: Package Lambda function
       run: |
-        cp GeoTracker ./package/
+        cp GeoTracker.py ./package/
         cd package
         zip -r ../lambda.zip .
 
@@ -34,7 +34,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # Change if your Lambda is in a different region
+        aws-region: us-east-1
 
     - name: Deploy Lambda function
       run: |
