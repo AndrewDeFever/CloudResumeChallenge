@@ -15,12 +15,14 @@ def lambda_handler(event, context):
 
         if not ip:
             return {
-                "statusCode": 400,
+                "statusCode": 200,
                 "headers": {
-                    "Access-Control-Allow-Origin": "https://subrealstudios.com"
-                },
-                "body": json.dumps({"error": "IP address not found in headers"})
-            }
+                    "Access-Control-Allow-Origin": "https://www.subrealstudios.com",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST",
+                    "Access-Control-Allow-Headers": "Content-Type"
+              },
+    "body": json.dumps({"message": "Visitor tracked"})
+}
 
         # Call ipinfo.io to get geolocation data
         response = requests.get(f"https://ipinfo.io/{ip}/json")
