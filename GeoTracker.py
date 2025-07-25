@@ -4,11 +4,16 @@ import os
 from datetime import datetime
 import requests
 
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
-
 def lambda_handler(event, context):
     try:
+        # Retrieve table name from environment variable
+        table_name = os.environ["DYNAMO_TABLE_NAME"]
+        
+        # Initialize DynamoDB resource and table
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table(table_name)
+
+        # Extract IP address from headers
         headers = event.get("headers", {})
         ip = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for")
 
@@ -18,7 +23,7 @@ def lambda_handler(event, context):
                 "body": json.dumps({"error": "IP address not found in headers"})
             }
 
-        # Use ipinfo.io to get geo data
+        # Get geo data from ipinfo.io
         response = requests.get(f"https://ipinfo.io/{ip}/json")
         geo_data = response.json()
 
@@ -27,7 +32,7 @@ def lambda_handler(event, context):
         city = geo_data.get("city", "Unknown")
         org = geo_data.get("org", "Unknown")
 
-        # Store in DynamoDB
+        # Store geo data in DynamoDB
         table.put_item(Item={
             'ip_address': ip,
             'visit_time': datetime.utcnow().isoformat(),
