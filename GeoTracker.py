@@ -4,48 +4,53 @@ import os
 from datetime import datetime
 import requests
 
+# Set up DynamoDB
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
+
 def lambda_handler(event, context):
     try:
-        # Retrieve table name from environment variable
-        table_name = os.environ["DYNAMO_TABLE_NAME"]
-        
-        # Initialize DynamoDB resource and table
-        dynamodb = boto3.resource("dynamodb")
-        table = dynamodb.Table(table_name)
-
-        # Extract IP address from headers
+        # Get the IP address from headers
         headers = event.get("headers", {})
         ip = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for")
 
         if not ip:
             return {
                 "statusCode": 400,
+                "headers": {
+                    "Access-Control-Allow-Origin": "https://subrealstudios.com"
+                },
                 "body": json.dumps({"error": "IP address not found in headers"})
             }
 
-        # Get geo data from ipinfo.io
+        # Call ipinfo.io to get geolocation data
         response = requests.get(f"https://ipinfo.io/{ip}/json")
         geo_data = response.json()
 
+        # Extract useful info
         country = geo_data.get("country", "Unknown")
         region = geo_data.get("region", "Unknown")
         city = geo_data.get("city", "Unknown")
         org = geo_data.get("org", "Unknown")
 
-        # Store geo data in DynamoDB
+        # Store in DynamoDB
         table.put_item(Item={
-            'ip_address': ip,
-            'visit_time': datetime.utcnow().isoformat(),
-            'country': country,
-            'region': region,
-            'city': city,
-            'org': org
+            "ip_address": ip,
+            "visit_time": datetime.utcnow().isoformat(),
+            "country": country,
+            "region": region,
+            "city": city,
+            "org": org
         })
 
+        # Successful response
         return {
             "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "https://subrealstudios.com"
+            },
             "body": json.dumps({
-                "message": "Geo data stored",
+                "message": "Geo data stored successfully",
                 "ip": ip,
                 "geo": {
                     "country": country,
@@ -59,6 +64,9 @@ def lambda_handler(event, context):
     except Exception as e:
         return {
             "statusCode": 500,
+            "headers": {
+                "Access-Control-Allow-Origin": "https://subrealstudios.com"
+            },
             "body": json.dumps({
                 "message": "Internal Server Error",
                 "error": str(e)
