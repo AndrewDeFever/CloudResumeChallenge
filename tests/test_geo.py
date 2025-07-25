@@ -32,7 +32,7 @@ def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
 
     # Call the Lambda function
     response = lambda_handler(mock_event, mock_context)
-
+    print("Lambda response:", response)
     # Assertions
     assert response["statusCode"] == 200
     body = json.loads(response["body"])
