@@ -21,14 +21,18 @@ This project extends the [Cloud Resume Challenge](https://cloudresumechallenge.d
 CloudResumeChallenge/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml           # GitHub Actions CI/CD
-├── GeoTracker.py                # Lambda function
-├── lambda.zip                   # Deployment package (generated)
-├── requirements.txt             # Dependencies (boto3, requests)
-├── tests/
-│   ├── __init__.py              # Pytest init file
-│   └── test_geo.py              # Unit test for Lambda
-└── README.md                    # You are here
+│       └── deploy.yml            # CI/CD pipeline (GitHub Actions)
+│
+├── tests/                        # Unit testing folder
+│   ├── __init__.py               # Marks the folder as a Python package
+│   └── test_geo.py               # Pytest unit test for GeoTracker Lambda
+│
+├── CloudResumeChallenge.html     # Frontend HTML file hosted on S3
+├── GeoTracker.py                 # Lambda function for logging IP geodata
+├── lambda_geoip.zip              # Zipped deployment package for Lambda (generated)
+├── requirements.txt              # Python dependencies (e.g., boto3, requests)
+├── LICENSE                       # License file for the project
+└── README.md                     # This file
 ```
 
 ## 🧠 How It Works
