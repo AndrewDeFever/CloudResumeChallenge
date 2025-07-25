@@ -1,15 +1,12 @@
-import os
-import pytest
+import json
 from unittest.mock import patch, MagicMock
 from GeoTracker import lambda_handler
 
-# Set required environment variable
-os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
 
-@patch("GeoTracker.boto3.resource")
-@patch("GeoTracker.requests.get")
+@patch("GeoTracker.boto3.resource")  # Patch boto3 first
+@patch("GeoTracker.requests.get")    # Then requests.get
 def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
-    # Mock the ipinfo.io response
+    # Mock response from ipinfo.io
     mock_response = MagicMock()
     mock_response.json.return_value = {
         "country": "US",
@@ -19,13 +16,13 @@ def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
     }
     mock_requests_get.return_value = mock_response
 
-    # Mock the DynamoDB resource and table
+    # Mock DynamoDB table
     mock_table = MagicMock()
     mock_dynamodb = MagicMock()
     mock_dynamodb.Table.return_value = mock_table
     mock_boto3_resource.return_value = mock_dynamodb
 
-    # Simulate a request event with headers
+    # Create mock event with headers
     mock_event = {
         "headers": {
             "X-Forwarded-For": "123.123.123.123"
@@ -36,6 +33,8 @@ def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
     # Call the Lambda function
     response = lambda_handler(mock_event, mock_context)
 
-    # Assert response
+    # Assertions
     assert response["statusCode"] == 200
-    assert "Geo data stored" in response["body"]
+    body = json.loads(response["body"])
+    assert body["message"] == "Geo data stored successfully"
+    assert body["geo"]["region"] == "Oklahoma"
