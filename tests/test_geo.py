@@ -4,6 +4,7 @@ from GeoTracker import lambda_handler
 
 # Set default AWS region so boto3 doesn't error
 os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
 
 def test_lambda_handler_returns_200():
     mock_event = {
