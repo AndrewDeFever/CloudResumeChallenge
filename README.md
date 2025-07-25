@@ -19,14 +19,14 @@ This project extends the [Cloud Resume Challenge](https://cloudresumechallenge.d
 
 CloudResumeChallenge/
 ├── .github/workflows/
-│ └── deploy.yml # GitHub Actions CI/CD
-├── GeoTracker.py # Lambda function
-├── lambda.zip # Deployment package (generated)
-├── requirements.txt # Dependencies (boto3, requests)
+│   └── deploy.yml             # GitHub Actions CI/CD
+├── GeoTracker.py              # Lambda function
+├── lambda.zip                 # Deployment package (generated)
+├── requirements.txt           # Dependencies (boto3, requests)
 ├── tests/
-│ ├── init.py # Pytest init file
-│ └── test_geo.py # Unit test for Lambda
-└── README.md # You are here
+│   ├── __init__.py            # Pytest init file
+│   └── test_geo.py            # Unit test for Lambda
+└── README.md                  # You are here
 
 
 ## 🧠 How It Works
