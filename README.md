@@ -1,88 +1,102 @@
-# 🌐 GeoTracker Lambda (Cloud Resume Challenge - Full Stack Serverless App)
+# 🌐 Cloud Resume Challenge – GeoTracker
 
-This is a full-stack, production-ready serverless web application built as part of the [Cloud Resume Challenge](https://cloudresumechallenge.dev/). It includes:
-
-- A static frontend hosted on Amazon S3 behind CloudFront with SSL (HTTPS)
-- A backend Lambda function triggered by the frontend
-- Visitor IP and geolocation data are stored in DynamoDB
-- Secure CI/CD pipeline using GitHub Actions and scoped IAM access
+This project extends the [Cloud Resume Challenge](https://cloudresumechallenge.dev/) by adding a serverless backend that geolocates each site visitor and stores data in DynamoDB using AWS Lambda, API Gateway, and CI/CD automation with GitHub Actions.
 
 ---
 
-## 🚀 Features
+## 📐 Architecture
 
-- 🌍 **Frontend** hosted on Amazon S3
-- 🔒 **Secured with CloudFront + SSL (HTTPS)**
-- 🛰️ **AWS Lambda** receives client IP + geolocation
-- 🧠 **Amazon DynamoDB** stores visitor metadata
-- 🔐 **IAM** scoped for least-privilege GitHub Actions deployment
-- ⚙️ **CI/CD** automated with GitHub Actions and `deploy.yml`
-
----
-
-## 🛠️ Technologies Used
-
-| Service         | Purpose                               |
-|-----------------|----------------------------------------|
-| AWS Lambda      | Serverless backend logic               |
-| Amazon DynamoDB | Persistent NoSQL storage               |
-| Amazon S3       | Frontend static website hosting        |
-| AWS CloudFront  | CDN + HTTPS SSL termination            |
-| GitHub Actions  | Continuous Integration & Deployment    |
-| IAM             | Secure AWS access for GitHub pipeline  |
-| Python 3.11     | Lambda runtime                         |
+- **Frontend**: Static site hosted on S3 + CloudFront + SSL
+- **Backend**: Python AWS Lambda triggered via API Gateway
+- **Database**: DynamoDB for geolocation data
+- **CI/CD**: GitHub Actions pipeline for test & deploy
+- **Monitoring**: CloudWatch Logs & error alerts via SNS
+- **Infrastructure as Code**: CloudFormation (optional)
 
 ---
 
 ## 📁 Project Structure
 
-```
-.
-├── GeoTracker.py         # Lambda function
-├── requirements.txt      # Python dependency list
-└── .github/
-    └── workflows/
-        └── deploy.yml    # GitHub Actions CI/CD workflow
-```
+CloudResumeChallenge/
+├── .github/workflows/
+│ └── deploy.yml # GitHub Actions CI/CD
+├── GeoTracker.py # Lambda function
+├── lambda.zip # Deployment package (generated)
+├── requirements.txt # Dependencies (boto3, requests)
+├── tests/
+│ ├── init.py # Pytest init file
+│ └── test_geo.py # Unit test for Lambda
+└── README.md # You are here
+
+
+## 🧠 How It Works
+
+1. Frontend calls a REST API endpoint
+2. Lambda function:
+   - Parses visitor IP from headers
+   - Calls `ipinfo.io` to get location data
+   - Stores the result in DynamoDB
+3. Returns a JSON response
 
 ---
 
-## ⚙️ CI/CD Workflow
+## 🧪 Testing
+Unit tests use `pytest` with mocks for `boto3` and `requests`.
 
-When code is pushed to the `main` branch:
+### Run Locally
 
-1. GitHub Actions installs dependencies from `requirements.txt`
-2. Packages the Lambda function into a zip
-3. Authenticates to AWS using GitHub Secrets
-4. Deploys the package to the existing Lambda function
+bash
+pip install -r requirements.txt
+python -m pytest tests
 
-Secrets are configured in GitHub:
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
 
----
+🚀 CI/CD Pipeline
+Automatically deploys Lambda function on push to main.
 
-## 🧠 What I Learned
+Workflow Steps
+Set up Python 3.11
 
-- Serverless deployment best practices with AWS Lambda + DynamoDB
-- Frontend hosting with S3 + CloudFront + SSL
-- CI/CD automation with GitHub Actions
-- Secure IAM role configuration for automation
+Install dependencies
 
----
+Run unit tests
 
-## 📎 Future Improvements
+Package function as lambda.zip
 
-- Add visitor dashboard using Athena + QuickSight
-- Integrate unit tests into CI/CD pipeline
-- Add alerting with CloudWatch Logs
-- Use environment branching (dev → prod)
+Deploy via aws lambda update-function-code
 
----
+Required GitHub Secrets
+AWS_ACCESS_KEY_ID
 
-## 👋 Author
+AWS_SECRET_ACCESS_KEY
 
-**Andrew DeFever**  
-AWS Certified Cloud Practitioner | CompTIA Security+  
-GitHub: [@AndrewDeFever](https://github.com/AndrewDeFever)  
-LinkedIn: [linkedin.com/in/andrewdefever](https://linkedin.com/in/andrewdefever)
+
+🔐 Environment Variables
+These must be configured in your Lambda function:
+
+DYNAMO_TABLE_NAME=GeoVisitors
+AWS_REGION=us-east-1
+
+
+🔔 Monitoring
+CloudWatch Logs enabled for Lambda
+
+Alarm created for errors
+
+SNS sends alerts (email, etc.)
+
+
+🧱 Future Enhancements
+ Add read/retrieve Lambda for visitor stats
+
+ Deduplicate IPs or track unique daily visits
+
+ Use Secrets Manager for IP info API token (if required)
+
+ Finalize CloudFormation or CDK for full deployment
+
+✅ Status
+✅ Lambda deployed
+✅ Tests mocked and passing
+✅ CI/CD live via GitHub Actions
+✅ Writes to DynamoDB working
+🚧 CloudFormation in progress
