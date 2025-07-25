@@ -4,11 +4,10 @@ import os
 from datetime import datetime
 import requests
 
-# Set up DynamoDB
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
 
 def lambda_handler(event, context):
+    dynamodb = boto3.resource("dynamodb")  # ← now safe to mock
+    table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
     try:
         # Get the IP address from headers
         headers = event.get("headers", {})
