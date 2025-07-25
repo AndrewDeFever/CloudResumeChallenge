@@ -7,9 +7,10 @@ from GeoTracker import lambda_handler
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
 
+@patch("GeoTracker.boto3.resource")
 @patch("GeoTracker.requests.get")
-def test_lambda_handler_returns_200(mock_get):
-    # Simulate ipinfo.io response
+def test_lambda_handler_returns_200(mock_get, mock_boto3_resource):
+    # Mock ipinfo response
     mock_response = MagicMock()
     mock_response.json.return_value = {
         "country": "US",
@@ -18,6 +19,12 @@ def test_lambda_handler_returns_200(mock_get):
         "org": "Fake ISP"
     }
     mock_get.return_value = mock_response
+
+    # Mock DynamoDB table put_item
+    mock_table = MagicMock()
+    mock_dynamodb = MagicMock()
+    mock_dynamodb.Table.return_value = mock_table
+    mock_boto3_resource.return_value = mock_dynamodb
 
     mock_event = {
         "headers": {
