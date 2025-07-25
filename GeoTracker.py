@@ -11,46 +11,62 @@ def lambda_handler(event, context):
         "Access-Control-Allow-Headers": "Content-Type"
     }
 
-    # Handle preflight
-    if event.get("httpMethod") == "OPTIONS":
+    if event["requestContext"]["http"]["method"] == "OPTIONS":
         return {
             "statusCode": 200,
             "headers": headers,
-            "body": json.dumps({"message": "Preflight OK"})
+            "body": json.dumps({"message": "CORS preflight success"})
         }
 
     try:
+        # Get DynamoDB table
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
 
         # Get IP address
-        ip = event.get("headers", {}).get("X-Forwarded-For", "0.0.0.0").split(",")[0]
+        ip = event.get("headers", {}).get("X-Forwarded-For", "unknown")
 
         # Get geo info
-        geo_resp = requests.get(f"https://ipinfo.io/{ip}/json")
-        geo_data = geo_resp.json()
+        geo_response = requests.get(f"https://ipinfo.io/{ip}/json")
+        geo_data = geo_response.json()
 
-        item = {
+        # Extract
+        country = geo_data.get("country", "Unknown")
+        region = geo_data.get("region", "Unknown")
+        city = geo_data.get("city", "Unknown")
+        org = geo_data.get("org", "Unknown")
+
+        # Store in DynamoDB
+        table.put_item(Item={
             "ip_address": ip,
             "visit_time": datetime.utcnow().isoformat(),
-            "country": geo_data.get("country", "Unknown"),
-            "region": geo_data.get("region", "Unknown"),
-            "city": geo_data.get("city", "Unknown"),
-            "org": geo_data.get("org", "Unknown")
-        }
-
-        table.put_item(Item=item)
+            "country": country,
+            "region": region,
+            "city": city,
+            "org": org
+        })
 
         return {
             "statusCode": 200,
             "headers": headers,
-            "body": json.dumps({"message": "Geo data stored successfully", "data": item})
+            "body": json.dumps({
+                "message": "Geo data stored successfully",
+                "ip": ip,
+                "geo": {
+                    "country": country,
+                    "region": region,
+                    "city": city,
+                    "org": org
+                }
+            })
         }
 
     except Exception as e:
-        print(f"GeoTracker ERROR: {str(e)}")
         return {
             "statusCode": 500,
             "headers": headers,
-            "body": json.dumps({"error": str(e)})
+            "body": json.dumps({
+                "message": "Internal Server Error",
+                "error": str(e)
+            })
         }
