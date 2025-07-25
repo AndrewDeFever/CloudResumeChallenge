@@ -7,8 +7,8 @@ from GeoTracker import lambda_handler
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
 
-@patch("GeoTracker.boto3.resource")
 @patch("GeoTracker.requests.get")
+@patch("GeoTracker.boto3.resource")
 def test_lambda_handler_returns_200(mock_get, mock_boto3_resource):
     # Mock ipinfo response
     mock_response = MagicMock()
