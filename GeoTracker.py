@@ -23,14 +23,23 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
 
-        # Get IP address
-        ip = event.get("headers", {}).get("X-Forwarded-For", "unknown")
+        # Get IP address from requestContext (fallback if header is missing)
+        ip = (
+            event.get("headers", {}).get("x-forwarded-for") or
+            event.get("requestContext", {}).get("http", {}).get("sourceIp") or
+            "unknown"
+        )
 
-        # Get geo info
+        # Clean up multi-IP case (X-Forwarded-For may return "IP1, IP2")
+        ip = ip.split(",")[0].strip()
+
+        # Optional: capture User-Agent
+        user_agent = event.get("headers", {}).get("user-agent", "Unknown")
+
+        # Use ipinfo.io to look up geo info
         geo_response = requests.get(f"https://ipinfo.io/{ip}/json")
         geo_data = geo_response.json()
 
-        # Extract
         country = geo_data.get("country", "Unknown")
         region = geo_data.get("region", "Unknown")
         city = geo_data.get("city", "Unknown")
@@ -43,7 +52,8 @@ def lambda_handler(event, context):
             "country": country,
             "region": region,
             "city": city,
-            "org": org
+            "org": org,
+            "user_agent": user_agent
         })
 
         return {
