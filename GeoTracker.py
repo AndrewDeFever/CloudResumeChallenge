@@ -11,7 +11,7 @@ def lambda_handler(event, context):
         "Access-Control-Allow-Headers": "Content-Type"
     }
 
-    if event["requestContext"]["http"]["method"] == "OPTIONS":
+    if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {
             "statusCode": 200,
             "headers": headers,
