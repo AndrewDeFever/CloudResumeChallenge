@@ -2,7 +2,7 @@ import os
 import json
 from GeoTracker import lambda_handler
 
-# Set required env vars
+# Set environment variables for the test
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
 
