@@ -4,31 +4,34 @@ import os
 from datetime import datetime
 import requests
 
-
 def lambda_handler(event, context):
-    dynamodb = boto3.resource("dynamodb")  # ← now safe to mock
+    # Handle CORS preflight
+    if event.get("httpMethod") == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "https://www.subrealstudios.com",
+                "Access-Control-Allow-Methods": "OPTIONS,POST",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
+            "body": json.dumps({"message": "CORS preflight OK"})
+        }
+
+    dynamodb = boto3.resource("dynamodb")
     table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
+
     try:
-        # Get the IP address from headers
+        # Get the IP address
         headers = event.get("headers", {})
         ip = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for")
 
         if not ip:
-            return {
-                "statusCode": 200,
-                "headers": {
-                    "Access-Control-Allow-Origin": "https://www.subrealstudios.com",
-                    "Access-Control-Allow-Methods": "OPTIONS,POST",
-                    "Access-Control-Allow-Headers": "Content-Type"
-              },
-    "body": json.dumps({"message": "Visitor tracked"})
-}
+            raise ValueError("IP address not found in request headers.")
 
-        # Call ipinfo.io to get geolocation data
+        # Get geolocation data
         response = requests.get(f"https://ipinfo.io/{ip}/json")
         geo_data = response.json()
 
-        # Extract useful info
         country = geo_data.get("country", "Unknown")
         region = geo_data.get("region", "Unknown")
         city = geo_data.get("city", "Unknown")
@@ -44,11 +47,10 @@ def lambda_handler(event, context):
             "org": org
         })
 
-        # Successful response
         return {
             "statusCode": 200,
             "headers": {
-                "Access-Control-Allow-Origin": "https://subrealstudios.com"
+                "Access-Control-Allow-Origin": "https://www.subrealstudios.com"
             },
             "body": json.dumps({
                 "message": "Geo data stored successfully",
@@ -63,16 +65,15 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-
         print(f"GeoTracker ERROR: {str(e)}")
-        
         return {
             "statusCode": 500,
             "headers": {
-                "Access-Control-Allow-Origin": "https://subrealstudios.com"
+                "Access-Control-Allow-Origin": "https://www.subrealstudios.com"
             },
             "body": json.dumps({
                 "message": "Internal Server Error",
                 "error": str(e)
             })
         }
+
