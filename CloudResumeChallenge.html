@@ -56,6 +56,7 @@
       animation: fadeInUp 0.6s ease-out;
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
   <nav style="text-align:center; margin-bottom: 2rem; font-weight: bold;">
@@ -172,13 +173,90 @@
     console.error("GeoTracker error:", error);
   });
   </script> 
-  <p id="visitCount">Loading visits...</p>
+  <p id="visit-count">Visits: loading...</p>
   <script>
-      fetch('https://njx3tbb522.execute-api.us-east-1.amazonaws.com/prod/stats')
-   	   .then(res => res.json())
-	   .then(data => {
-     		 document.getElementById('visitCount').innerText = `Visits: ${data.total_visits}`;
+  fetch("https://hssvgxnjj6.execute-api.us-east-1.amazonaws.com/default/ReadGeoStats")
+    .then(response => response.json())
+    .then(data => {
+      console.log("ReadGeoStats data:", data);
+
+      // Display number of visits
+      const visits = data.length;
+      document.getElementById("visit-count").textContent = `Visits: ${visits}`;
+    })
+    .catch(error => {
+      console.error("Error fetching visit stats:", error);
+      document.getElementById("visit-count").textContent = "Visits: unavailable";
     });
-   </script>
+</script>
+<script>
+// Map known ISP names to Font Awesome icons
+const ispIconMap = {
+  "Google": "fab fa-google",
+  "Verizon": "fas fa-network-wired",
+  "AT&T": "fas fa-broadcast-tower",
+  "Comcast": "fas fa-wifi",
+  "T-Mobile": "fas fa-signal",
+  "Spectrum": "fas fa-plug",
+  "Charter": "fas fa-ethernet",
+  "Amazon": "fab fa-aws",
+  "Cox": "fas fa-globe-americas",
+  "Level 3": "fas fa-project-diagram",
+  "Hetzner": "fas fa-server",
+  "Tencent": "fab fa-internet-explorer",
+  "SCALEWAY": "fas fa-cloud",
+  "Geekyworks": "fas fa-user-secret"
+};
+
+// Convert 2-letter country code to flag emoji
+function getFlagEmoji(countryCode) {
+  if (!countryCode) return "🌐";
+  const codePoints = [...countryCode.toUpperCase()]
+    .map(char => 127397 + char.charCodeAt());
+  return String.fromCodePoint(...codePoints);
+}
+
+// Get ISP icon based on org string
+function getISPIcon(org) {
+  if (!org) return '<i class="fas fa-globe"></i>';
+  const match = Object.keys(ispIconMap).find(key => org.includes(key));
+  return match ? `<i class="${ispIconMap[match]}"></i>` : '<i class="fas fa-globe"></i>';
+}
+
+// Fetch visitor data and render top 5 recent entries
+fetch("https://hssvgxnjj6.execute-api.us-east-1.amazonaws.com/default/ReadGeoStats")
+  .then(res => res.json())
+  .then(data => {
+    console.log("ReadGeoStats data:", data);
+    const list = document.getElementById("visitor-list");
+
+    // Sort by visit_time descending and take latest 5
+    const latest = data
+      .sort((a, b) => new Date(b.visit_time) - new Date(a.visit_time))
+      .slice(0, 5);
+
+    latest.forEach(item => {
+      const flag = getFlagEmoji(item.country);
+      const ispIcon = getISPIcon(item.org || "");
+      const entry = document.createElement("li");
+      entry.innerHTML = `
+        ${flag} <strong>${item.city || "Unknown City"}, ${item.region || "?"}</strong>
+        — ${ispIcon} <em>${item.org || "Unknown ISP"}</em>
+      `;
+      list.appendChild(entry);
+    });
+  })
+  .catch(err => {
+    console.error("ReadGeoStats error:", err);
+    document.getElementById("visitor-list").innerHTML = "<li>Failed to load visitor data.</li>";
+  });
+</script>
+<section class="section" id="visitor-log">
+  <h2>Recent Visitors</h2>
+  <ul id="visitor-list"></ul>
+</section>
+
 </body>
 </html>
+
+
