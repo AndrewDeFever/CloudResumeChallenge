@@ -24,36 +24,44 @@ A serverless web resume hosted on AWS using S3, CloudFront, and Route 53, with a
 
 ## 🚀 Tech Stack
 
-| Feature               | Technology                                    |
-|----------------------|-----------------------------------------------|
-| Static Hosting        | S3, CloudFront, Route 53                      |
-| HTTPS                 | ACM + CloudFront                              |
-| Visitor Logging       | Lambda (GeoTracker) + DynamoDB               |
-| Visitor Stats API     | Lambda (`ReadGeoStats`) + API Gateway        |
-| Frontend Integration  | JavaScript + Flag/ISP Icons (FontAwesome)    |
-| Infrastructure as Code| CloudFormation (YAML template)               |
-| CI/CD                 | GitHub Actions with OIDC                      |
-| IAM Security          | Scoped Lambda execution roles                |
-| Python Version        | 3.13                                          |
-| Testing               | Pytest (`tests/test_geo.py`)                 |
+| Feature                | Technology                                   |
+|------------------------|-----------------------------------------------|
+| Static Hosting         | S3, CloudFront, Route 53                      |
+| HTTPS                  | ACM + CloudFront                              |
+| Visitor Logging        | Lambda (`GeoTracker.py`) + DynamoDB          |
+| Visitor Stats API      | Lambda (`ReadGeoStats`) + API Gateway        |
+| Frontend Integration   | JavaScript + Flag/ISP Icons (Font Awesome)   |
+| Infrastructure as Code | CloudFormation (YAML)                         |
+| CI/CD                  | GitHub Actions with OIDC                      |
+| IAM Security           | Scoped Lambda execution roles                |
+| Python Version         | 3.13                                          |
+| Testing                | Pytest (`tests/test_geo.py`)                 |
+
+---
 
 ## 🧪 Testing
 
-- Tests are run using `pytest`.
-- GitHub Actions handles linting, testing, and deployment automatically.
+- Unit tests are written using `pytest`
+- Executed automatically via GitHub Actions CI/CD pipeline
 
-🔒 Security Notes
-- AWS Authentication: GitHub Actions authenticate to AWS using OIDC (OpenID Connect), eliminating the need to store long-term AWS credentials.
-- Least Privilege IAM: All IAM roles and policies are designed using the Principle of Least Privilege, granting only the specific permissions required by each component.
-- Scoped Lambda Permissions: Lambda functions use resource-based policies to restrict access to DynamoDB tables and are not publicly invokable.
-- No hardcoded secrets: Sensitive configurations like table names are passed through environment variables, not embedded in code.
-- No secrets required: This project does not use AWS access keys, tokens, or API keys. OIDC and IAM policies eliminate the need for credential storage.
-- CORS & API Hardening: Cross-Origin Resource Sharing (CORS) is explicitly configured. Further enhancements (e.g., IP allowlisting, API keys) are listed in the Future Enhancements section.
+---
+
+## 🔒 Security Notes
+
+- **AWS Authentication**: GitHub Actions authenticate to AWS using OIDC (OpenID Connect), eliminating long-term credentials.
+- **Least Privilege IAM**: IAM roles and policies are scoped to only what's required for each function.
+- **Scoped Lambda Permissions**: Lambdas are protected by resource-based permissions and are not publicly invokable.
+- **No Hardcoded Secrets**: Configuration (e.g., table names) is stored in environment variables.
+- **No Secrets Required**: No AWS access keys, tokens, or API keys are stored or needed.
+- **CORS & API Hardening**: CORS is configured; future work includes adding IP allowlisting or token protection.
+
+---
 
 ## 🌐 Live Demo
 
-View it here:  
-**[https://www.subrealstudios.com/CloudResumeChallenge.html](https://www.subrealstudios.com/CloudResumeChallenge.html)**
+🔗 [https://www.subrealstudios.com/CloudResumeChallenge.html](https://www.subrealstudios.com/CloudResumeChallenge.html)
+
+---
 
 ## 🔭 Future Enhancements
 
@@ -69,4 +77,4 @@ View it here:
 
 ## 📜 License
 
-MIT License
+GNU General Public License
