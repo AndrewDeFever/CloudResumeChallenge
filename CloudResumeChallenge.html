@@ -172,5 +172,13 @@
     console.error("GeoTracker error:", error);
   });
   </script> 
+  <p id="visitCount">Loading visits...</p>
+  <script>
+      fetch('https://njx3tbb522.execute-api.us-east-1.amazonaws.com/prod/stats')
+   	   .then(res => res.json())
+	   .then(data => {
+     		 document.getElementById('visitCount').innerText = `Visits: ${data.total_visits}`;
+    });
+   </script>
 </body>
 </html>
