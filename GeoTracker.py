@@ -59,7 +59,7 @@ def lambda_handler(event, context):
             "user_agent": user_agent
         }
 
-        print(f"Writing to DynamoDB table '{table_name}':")
+        print("Writing to table:", os.environ["DYNAMO_TABLE_NAME"])
         print(json.dumps(item, indent=2))
 
         # Write to DynamoDB
