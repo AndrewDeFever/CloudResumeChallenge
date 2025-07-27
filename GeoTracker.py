@@ -46,6 +46,9 @@ def lambda_handler(event, context):
         org = geo_data.get("org", "Unknown")
         
         visit_date = datetime.utcnow().strftime('%Y-%m-%d')
+     
+        print("Writing to table:", table_name)
+        print("Item being written:", json.dumps(item, indent=2))
 
         # Store in DynamoDB
         table.put_item(Item={
