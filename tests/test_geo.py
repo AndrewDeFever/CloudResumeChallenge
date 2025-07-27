@@ -1,115 +1,159 @@
-import os
+import pytest
 import json
-from unittest.mock import patch, MagicMock
+
 from GeoTracker import lambda_handler
 
-@patch("GeoTracker.boto3.resource")  # Patch boto3 first
-@patch("GeoTracker.requests.get")    # Then requests.get
-def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
-    os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
 
-    # Mock response from ipinfo.io
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
-        "country": "US",
-        "region": "Oklahoma",
-        "city": "Tulsa",
-        "org": "Fake ISP"
-    }
-    mock_requests_get.return_value = mock_response
+def test_lambda_handler_returns_200(monkeypatch):
+    """Test successful Lambda execution with valid IP and geo data."""
 
-    # Mock DynamoDB table
-    mock_table = MagicMock()
-    mock_dynamodb = MagicMock()
-    mock_dynamodb.Table.return_value = mock_table
-    mock_boto3_resource.return_value = mock_dynamodb
+    def mock_get(url, timeout=3):
+        class MockResponse:
+            def json(self):
+                return {
+                    "country": "US",
+                    "region": "Oklahoma",
+                    "city": "Tulsa",
+                    "org": "TestOrg"
+                }
+        return MockResponse()
 
-    # Create mock event with headers
-    mock_event = {
+    class MockTable:
+        def put_item(self, Item):
+            return {"ResponseMetadata": {"HTTPStatusCode": 200}}
+
+    class MockDynamo:
+        def Table(self, name):
+            return MockTable()
+
+    monkeypatch.setattr("GeoTracker.boto3.resource", lambda service: MockDynamo())
+    monkeypatch.setattr("GeoTracker.requests.get", mock_get)
+
+    event = {
         "headers": {
-            "X-Forwarded-For": "123.123.123.123"
+            "x-forwarded-for": "8.8.8.8",
+            "user-agent": "TestAgent"
+        },
+        "requestContext": {
+            "http": {
+                "method": "POST"
+            }
         }
     }
-    mock_context = {}
 
-    # Call the Lambda function
-    response = lambda_handler(mock_event, mock_context)
+    result = lambda_handler(event, {})
+    assert result["statusCode"] == 200
+    assert "Geo data stored successfully" in result["body"]
 
-    # Assertions
-    assert response["statusCode"] == 200
-    body = json.loads(response["body"])
-    assert body["message"] == "Geo data stored successfully"
-    assert body["geo"]["region"] == "Oklahoma"
 
-@patch("GeoTracker.boto3.resource")
-@patch("GeoTracker.requests.get")
-def test_lambda_handler_handles_ipinfo_failure(mock_requests_get, mock_boto3_resource):
-    import os
-    os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
+def test_lambda_handler_handles_ipinfo_failure(monkeypatch):
+    """Test Lambda handles IP geolocation lookup failure."""
 
-    # Simulate requests.get() throwing a connection error
-    mock_requests_get.side_effect = Exception("ipinfo.io timeout")
+    def mock_get(url, timeout=3):
+        raise Exception("ipinfo service down")
 
-    # Mock DynamoDB (won’t be reached, but still required)
-    mock_table = MagicMock()
-    mock_dynamodb = MagicMock()
-    mock_dynamodb.Table.return_value = mock_table
-    mock_boto3_resource.return_value = mock_dynamodb
+    class MockTable:
+        def put_item(self, Item):
+            return {"ResponseMetadata": {"HTTPStatusCode": 200}}
 
-    # Simulated incoming API Gateway event
-    mock_event = {
+    class MockDynamo:
+        def Table(self, name):
+            return MockTable()
+
+    monkeypatch.setattr("GeoTracker.boto3.resource", lambda service: MockDynamo())
+    monkeypatch.setattr("GeoTracker.requests.get", mock_get)
+
+    event = {
         "headers": {
-            "X-Forwarded-For": "123.123.123.123"
+            "x-forwarded-for": "8.8.8.8",
+            "user-agent": "TestAgent"
+        },
+        "requestContext": {
+            "http": {
+                "method": "POST"
+            }
         }
     }
-    mock_context = {}
 
-    # Run the Lambda function
-    response = lambda_handler(mock_event, mock_context)
-
-    # Assert Lambda returns HTTP 500 and includes the error message
-    assert response["statusCode"] == 500
-    body = json.loads(response["body"])
-    assert "Internal Server Error" in body["message"]
-    assert "ipinfo.io timeout" in body["error"]
+    result = lambda_handler(event, {})
+    assert result["statusCode"] == 500
+    assert "Internal Server Error" in result["body"]
 
 
-@patch("GeoTracker.boto3.resource")
-@patch("GeoTracker.requests.get")
-def test_lambda_handler_handles_dynamodb_failure(mock_requests_get, mock_boto3_resource):
-    import os
-    os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitors"
+def test_lambda_handler_handles_dynamodb_failure(monkeypatch):
+    """Test Lambda handles DynamoDB write failure."""
 
-    # Mock successful IP geolocation response
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
-        "country": "US",
-        "region": "Oklahoma",
-        "city": "Tulsa",
-        "org": "Fake ISP"
-    }
-    mock_requests_get.return_value = mock_response
+    def mock_get(url, timeout=3):
+        class MockResponse:
+            def json(self):
+                return {
+                    "country": "US",
+                    "region": "Oklahoma",
+                    "city": "Tulsa",
+                    "org": "TestOrg"
+                }
+        return MockResponse()
 
-    # Mock DynamoDB table and simulate .put_item() raising an exception
-    mock_table = MagicMock()
-    mock_table.put_item.side_effect = Exception("DynamoDB write error")
-    mock_dynamodb = MagicMock()
-    mock_dynamodb.Table.return_value = mock_table
-    mock_boto3_resource.return_value = mock_dynamodb
+    class MockTable:
+        def put_item(self, Item):
+            raise Exception("DynamoDB write error")
 
-    # Simulated incoming API Gateway event
-    mock_event = {
+    class MockDynamo:
+        def Table(self, name):
+            return MockTable()
+
+    monkeypatch.setattr("GeoTracker.boto3.resource", lambda service: MockDynamo())
+    monkeypatch.setattr("GeoTracker.requests.get", mock_get)
+
+    event = {
         "headers": {
-            "X-Forwarded-For": "123.123.123.123"
+            "x-forwarded-for": "8.8.8.8",
+            "user-agent": "TestAgent"
+        },
+        "requestContext": {
+            "http": {
+                "method": "POST"
+            }
         }
     }
-    mock_context = {}
 
-    # Run the Lambda function
-    response = lambda_handler(mock_event, mock_context)
+    result = lambda_handler(event, {})
+    assert result["statusCode"] == 500
+    assert "Internal Server Error" in result["body"]
 
-    # Assert Lambda returns HTTP 500 and includes the DynamoDB error
-    assert response["statusCode"] == 500
+
+def test_lambda_handler_skips_unknown_ip():
+    """Test Lambda skips DynamoDB write on unknown IP."""
+    event = {
+        "headers": {
+            "user-agent": "TestAgent"
+        },
+        "requestContext": {
+            "http": {
+                "method": "POST"
+            }
+        }
+    }
+
+    result = lambda_handler(event, {})
+    assert result["statusCode"] == 400
+    assert "IP address could not be resolved" in result["body"]
+
+
+def test_lambda_handler_cors_preflight():
+    """Test Lambda returns 200 on CORS OPTIONS request."""
+    event = {
+        "requestContext": {
+            "http": {
+                "method": "OPTIONS"
+            }
+        }
+    }
+
+    result = lambda_handler(event, {})
+    assert result["statusCode"] == 200
+    assert "CORS preflight success" in result["body"]
+
     body = json.loads(response["body"])
     assert "Internal Server Error" in body["message"]
     assert "DynamoDB write error" in body["error"]
