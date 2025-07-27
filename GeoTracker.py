@@ -44,10 +44,13 @@ def lambda_handler(event, context):
         region = geo_data.get("region", "Unknown")
         city = geo_data.get("city", "Unknown")
         org = geo_data.get("org", "Unknown")
+        
+        visit_date = datetime.utcnow().strftime('%Y-%m-%d')
 
         # Store in DynamoDB
         table.put_item(Item={
             "ip_address": ip,
+            "visit_date": visit_date,
             "visit_time": datetime.utcnow().isoformat(),
             "country": country,
             "region": region,
