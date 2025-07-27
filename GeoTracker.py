@@ -11,6 +11,7 @@ def lambda_handler(event, context):
         "Access-Control-Allow-Headers": "Content-Type"
     }
 
+    # Handle CORS preflight
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {
             "statusCode": 200,
@@ -19,48 +20,50 @@ def lambda_handler(event, context):
         }
 
     try:
-        # Get DynamoDB table
+        # Get table name from environment and init DynamoDB
+        table_name = os.environ["DYNAMO_TABLE_NAME"]
         dynamodb = boto3.resource("dynamodb")
-        table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
+        table = dynamodb.Table(table_name)
 
-        # Get IP address from requestContext (fallback if header is missing)
+        # Get IP from headers or request context
         ip = (
             event.get("headers", {}).get("x-forwarded-for") or
             event.get("requestContext", {}).get("http", {}).get("sourceIp") or
             "unknown"
         )
+        ip = ip.split(",")[0].strip()  # Strip extra IPs
 
-        # Clean up multi-IP case (X-Forwarded-For may return "IP1, IP2")
-        ip = ip.split(",")[0].strip()
-
-        # Optional: capture User-Agent
+        # Capture User-Agent
         user_agent = event.get("headers", {}).get("user-agent", "Unknown")
 
-        # Use ipinfo.io to look up geo info
-        geo_response = requests.get(f"https://ipinfo.io/{ip}/json")
+        # Fetch geo data
+        geo_response = requests.get(f"https://ipinfo.io/{ip}/json", timeout=2)
         geo_data = geo_response.json()
 
         country = geo_data.get("country", "Unknown")
         region = geo_data.get("region", "Unknown")
         city = geo_data.get("city", "Unknown")
         org = geo_data.get("org", "Unknown")
-        
-        visit_date = datetime.utcnow().strftime('%Y-%m-%d')
-     
-        print("Writing to table:", table_name)
-        print("Item being written:", json.dumps(item, indent=2))
 
-        # Store in DynamoDB
-        table.put_item(Item={
+        visit_date = datetime.utcnow().strftime('%Y-%m-%d')
+        visit_time = datetime.utcnow().isoformat()
+
+        item = {
             "ip_address": ip,
             "visit_date": visit_date,
-            "visit_time": datetime.utcnow().isoformat(),
+            "visit_time": visit_time,
             "country": country,
             "region": region,
             "city": city,
             "org": org,
             "user_agent": user_agent
-        })
+        }
+
+        print(f"Writing to DynamoDB table '{table_name}':")
+        print(json.dumps(item, indent=2))
+
+        # Write to DynamoDB
+        table.put_item(Item=item)
 
         return {
             "statusCode": 200,
@@ -78,6 +81,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
+        print("Exception occurred:", str(e))
         return {
             "statusCode": 500,
             "headers": headers,
