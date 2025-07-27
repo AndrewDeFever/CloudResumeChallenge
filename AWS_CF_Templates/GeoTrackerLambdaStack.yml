@@ -34,7 +34,7 @@ Resources:
       Timeout: 10
       Environment:
         Variables:
-          DYNAMO_TABLE_NAME: GeoVisitors
+          DYNAMO_TABLE_NAME: GeoVisitorsByDay
       Code:
         S3Bucket: subrealstudios.com
         S3Key: lambda/lambda_geoip.zip  # Upload manually or via CI
