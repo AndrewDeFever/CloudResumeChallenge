@@ -63,8 +63,9 @@ def lambda_handler(event, context):
             "org": {"S": org},
             "user_agent": {"S": user_agent},
             "expire_time": {"N": str(expire_time)}
-            "latitude"] = {"N": str(latitude)}
-            "longitude"] = {"N": str(longitude)}
+           
+            item["latitude"] = {"N": str(latitude)}
+            item["longitude"] = {"N": str(longitude)}
         }
 
         print("Writing to DynamoDB (deduplicated):", item)
