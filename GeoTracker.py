@@ -44,6 +44,7 @@ def lambda_handler(event, context):
         region = geo_data.get("region", "Unknown")
         city = geo_data.get("city", "Unknown")
         org = geo_data.get("org", "Unknown")
+        coords = geo_data.get("loc", "0,0").split(",")
 
         # Visit metadata
         visit_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
@@ -62,6 +63,8 @@ def lambda_handler(event, context):
             "org": {"S": org},
             "user_agent": {"S": user_agent},
             "expire_time": {"N": str(expire_time)}
+            "latitude"] = {"N": str(latitude)}
+            "longitude"] = {"N": str(longitude)}
         }
 
         print("Writing to DynamoDB (deduplicated):", item)
