@@ -46,8 +46,6 @@ def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
     assert body["geo"]["region"] == "Oklahoma"
 
 
-@patch("GeoTracker.boto3.resource")
-@patch("GeoTracker.requests.get")
 def test_lambda_handler_skips_duplicate_ip():
     os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitorsByDay"
 
