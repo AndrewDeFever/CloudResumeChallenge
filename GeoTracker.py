@@ -36,6 +36,7 @@ def lambda_handler(event, context):
     ip = ip.split(",")[0].strip()
     user_agent = event.get("headers", {}).get("user-agent", "Unknown")
 
+    
     try:
         # Lookup geo info
         geo_response = requests.get(f"https://ipinfo.io/{ip}/json", timeout=5)
@@ -46,6 +47,9 @@ def lambda_handler(event, context):
         city = geo_data.get("city", "Unknown")
         org = geo_data.get("org", "Unknown")
         visit_date = datetime.utcnow().strftime('%Y-%m-%d')
+        dedupe_key = f"{ip}#{visit_date}"
+        expire_time = int(time.time()) + 86400  # 24 hours from now
+
 
         # DynamoDB write
         table_name = os.environ["DYNAMO_TABLE_NAME"]
@@ -53,14 +57,16 @@ def lambda_handler(event, context):
         table = dynamodb.Table(table_name)
 
         item = {
-            "ip_address": ip,
-            "visit_date": visit_date,
-            "visit_time": datetime.utcnow().isoformat(),
-            "country": country,
-            "region": region,
-            "city": city,
-            "org": org,
-            "user_agent": user_agent
+            "ip_date_key": {"S": dedupe_key},
+            "ip_address": {"S": ip},
+            "visit_date": {"S": visit_date},
+            "visit_time": {"S": datetime.utcnow().isoformat()},
+            "country": {"S": country},
+            "region": {"S": region},
+            "city": {"S": city},
+            "org": {"S": org},
+            "user_agent": {"S": user_agent},
+            "expire_time": {"N": str(expire_time)}
         }
 
         print("Writing to table:", table_name)
@@ -92,3 +98,18 @@ def lambda_handler(event, context):
                 "error": str(e)
             })
         }
+    try:
+        dynamodb.put_item(
+            TableName='GeoVisitors',
+            Item=item,
+            ConditionExpression='attribute_not_exists(ip_date_key)'
+        )
+        print(f"Visitor {ip} on {visit_date} recorded.")
+    except dynamodb.exceptions.ConditionalCheckFailedException:
+        print(f"Visitor {ip} already recorded today — skipping.")
+
+    # 3. Return a success response
+    return {
+        "statusCode": 200,
+        "body": "Visit recorded"
+    }
