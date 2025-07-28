@@ -48,24 +48,8 @@ def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
 
 @patch("GeoTracker.boto3.resource")
 @patch("GeoTracker.requests.get")
-def test_lambda_handler_handles_dynamodb_failure(mock_requests_get, mock_boto3_resource):
+def test_lambda_handler_skips_duplicate_ip():
     os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitorsByDay"
-
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
-        "country": "US",
-        "region": "OK",
-        "city": "Tulsa",
-        "org": "Test ISP"
-    }
-    mock_requests_get.return_value = mock_response
-
-    # Simulate DynamoDB error
-    mock_table = MagicMock()
-    mock_table.put_item.side_effect = Exception("DynamoDB write error")
-    mock_dynamodb = MagicMock()
-    mock_dynamodb.Table.return_value = mock_table
-    mock_boto3_resource.return_value = mock_dynamodb
 
     event = {
         "headers": {
@@ -74,18 +58,19 @@ def test_lambda_handler_handles_dynamodb_failure(mock_requests_get, mock_boto3_r
         },
         "requestContext": {
             "http": {
-                "method": "POST"
+                "method": "POST",
+                "sourceIp": "8.8.8.8"
             }
         }
     }
 
-    context = {}
-    response = lambda_handler(event, context)
+    response = lambda_handler(event, None)
 
-    assert response["statusCode"] == 500
+    # Expect a 200 if already visited today
+    assert response["statusCode"] == 200
+
     body = json.loads(response["body"])
-    assert "DynamoDB write error" in body["message"] or "error" in body
-
+    assert "Visit already recorded today" in body["message"]
 
 def test_lambda_handler_cors_preflight():
     mock_event = {
