@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Full CloudFormation stack for Cloud Resume Challenge GeoTracker and ReadGeoStats
+
+Parameters:
+  GeoTrackerLambdaName:
+    Type: String
+    Default: GeoTracker
+
+  ReadGeoStatsLambdaName:
+    Type: String
+    Default: ReadGeoStats
+
+  GeoTableName:
+    Type: String
+    Default: GeoVisitorsByDay
+
+Resources:
+
+  GeoVisitorsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref GeoTableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: ip_address
+          AttributeType: S
+        - AttributeName: visit_date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ip_address
+          KeyType: HASH
+        - AttributeName: visit_date
+          KeyType: RANGE
+
+  GeoTrackerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: GeoTrackerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DynamoDBPutAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: dynamodb:PutItem
+                Resource: !GetAtt GeoVisitorsTable.Arn
+              - Effect: Allow
+                Action: logs:*
+                Resource: arn:aws:logs:*:*:*
+
+  ReadGeoStatsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ReadGeoStatsLambdaRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DynamoDBScanAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: dynamodb:Scan
+                Resource: !GetAtt GeoVisitorsTable.Arn
+              - Effect: Allow
+                Action: logs:*
+                Resource: arn:aws:logs:*:*:*
+
+  GeoTrackerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref GeoTrackerLambdaName
+      Runtime: python3.13
+      Role: !GetAtt GeoTrackerLambdaRole.Arn
+      Handler: GeoTracker.lambda_handler
+      Code:
+        S3Bucket: your-code-bucket
+        S3Key: lambda_geoip.zip
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: !Ref GeoTableName
+
+  ReadGeoStatsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref ReadGeoStatsLambdaName
+      Runtime: python3.13
+      Role: !GetAtt ReadGeoStatsLambdaRole.Arn
+      Handler: ReadGeoStats.lambda_handler
+      Code:
+        S3Bucket: your-code-bucket
+        S3Key: lambda_geoip.zip
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: !Ref GeoTableName
+
+  GeoApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ReadGeoStats-API
+
+  GeoApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref GeoApi
+      ParentId: !GetAtt GeoApi.RootResourceId
+      PathPart: track
+
+  GeoApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref GeoApi
+      ResourceId: !Ref GeoApiResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: 
+          Fn::Sub: >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReadGeoStatsFunction.Arn}/invocations
+
+  GeoApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: GeoApiMethod
+    Properties:
+      RestApiId: !Ref GeoApi
+      StageName: default
+
+  ReadGeoStatsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ReadGeoStatsFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${GeoApi}/*/*/track
