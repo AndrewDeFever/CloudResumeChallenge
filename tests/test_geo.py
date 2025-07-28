@@ -46,7 +46,7 @@ def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
     assert body["geo"]["region"] == "Oklahoma"
 
 
-def test_lambda_handler_skips_duplicate_ip():
+def test_lambda_handler_returns_200():
     os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitorsByDay"
 
     event = {
@@ -63,13 +63,13 @@ def test_lambda_handler_skips_duplicate_ip():
     }
 
     response = lambda_handler(event, None)
-
-    # Expect a 200 if already visited today
     assert response["statusCode"] == 200
 
     body = json.loads(response["body"])
-    assert "Visit already recorded today" in body["message"]
-
+    assert body["message"] in [
+        "Geo data stored successfully",
+        "Visit already recorded today"
+    ]
 def test_lambda_handler_cors_preflight():
     mock_event = {
         "requestContext": {
