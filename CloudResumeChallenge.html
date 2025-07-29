@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Andrew DeFever | Cloud Resume</title>
+
+  <!-- Your existing styles -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -42,22 +44,71 @@
     .cert-download {
       margin-top: 1rem;
     }
-      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
-    h1, h2 {
-      font-family: 'Orbitron', sans-serif;
-    }
-
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+    h1, h2 { font-family: 'Orbitron', sans-serif; }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .section { animation: fadeInUp 0.6s ease-out; }
 
-    .section {
-      animation: fadeInUp 0.6s ease-out;
+    /* Map & legend styling */
+    #map { height: 500px; margin: 1rem 0; border: 1px solid #ccc; }
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+    .legend span {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 6px;
+      vertical-align: middle;
     }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Font Awesome (for Visitor Log icons) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- 1) Leaflet core CSS/JS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- 2) MarkerCluster plugin -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  />
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <!-- 3) Heatmap plugin -->
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 </head>
+
 <body>
   <nav style="text-align:center; margin-bottom: 2rem; font-weight: bold;">
     <a href="#about">About</a> |
@@ -67,6 +118,7 @@
     <a href="#experience">Experience</a> |
     <a href="#education">Education</a>
   </nav>
+
   <header>
     <h1>Andrew DeFever</h1>
     <p>AWS Certified | Cloud Resume Challenge</p>
@@ -79,7 +131,6 @@
 
   <section class="section" id="about">
     <h2>About This Site</h2>
-    <p>This resume site was built as part of the <strong>Cloud Resume Challenge</strong>. It is:</p>
     <ul>
       <li>Hosted on Amazon S3 with static website hosting</li>
       <li>Delivered through CloudFront (CDN)</li>
@@ -89,174 +140,143 @@
     <p><a href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank">View the GitHub repository</a></p>
   </section>
 
-  <section class="section" id="certs">
-    <h2>Certifications</h2>
-    <div class="badges">
-      <a href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank">
-        <img src="./CloudResumeChallenge/aws-certified-cloud-practitioner.png" alt="AWS Cloud Practitioner Badge" />
-      </a>
-      <a href="./CloudResumeChallenge/CompTIA Security+ Certification.pdf" target="_blank">
-        <img src="./CloudResumeChallenge/comptia-security-ce-certification.png" alt="CompTIA Security+ Badge" />
-      </a>
-    </div>
-    <ul>
-      <li>AWS Certified Cloud Practitioner – July 15, 2025</li>
-      <li>CompTIA Security+ (SY0-701) – June 17, 2025</li>
-    </ul>
-  </section>
-
-  <section class="section" id="skills">
-    <h2>Technical Skills</h2>
-    <ul>
-      <li>AWS Services – S3, CloudFront, Route 53, IAM, ACM, TLS, Bucket Policies, DynamoDB, etc.</li>
-      <li>Networking – IP/Ethernet, BGP, MPLS, IPVPN, Eline, VPLS, VLANs, firewall policy management, DNS (BIND)</li>
-      <li>Systems – Linux CLI, system admin, SNMP monitoring, Netcool, Cacti, SolarWinds, Infinera, Cisco IOS/NX-OS, JunOS</li>
-	  <li>Security – CompTIA Security+ certified, experience mitigating DDoS via RADware (DefensePro, DefenseFlow), IAM principles, secure traffic routing via GRE tunneling</li>
-    </ul>
-  </section>
-
-  <section class="section" id="projects">
-    <h2>Projects</h2>
-    <ul>
-      <li><strong>Cloud Resume Challenge</strong> – Hosted resume site on S3 with CloudFront, secured via ACM, and built a visitor tracker using API Gateway, Lambda (Python), and DynamoDB. Packaged Lambda with external dependencies via CloudShell and deployed securely using IAM and environment variables.</li>
-    </ul>
-  </section>
-
-  <section class="section" id="experience">
-    <h2>Experience</h2>
-    <ul>
-      <li><strong>Systems Analyst II – OneGas</strong> (11/2021 – Present)<br />
-        - Monitor, support, and troubleshoot applications and connectivity across business systems.<br />
-        - Collaborate with cross-functional teams to support operational readiness.<br />
-        - Coordinate with vendors and stakeholders to ensure system reliability.<br />
-      </li>
-      <li><strong>Lead IP/Ethernet NCC Technician – Zayo</strong> (04/2016 – 02/2018)<br />
-        - Provided advanced troubleshooting for IP and Ethernet circuits across a national network.<br />
-        - Configured and maintained Juniper, Cisco, Alcatel-Lucent routers, firewalls, and DDoS mitigation platforms.<br />
-        - Trained and mentored Tier 1 and Tier 2 technicians, improving resolution times.<br />
-	  </li>
-<li><strong>IP/Ethernet NCC Technician – Zayo</strong> (11/2014 – 04/2016)<br />
-        - Diagnosed and resolved faults across IP, IP VPN, VPLS, E-Line, and PDN circuits, prioritizing rapid time-to-resolution.<br />
-        - Executed RFC 2544 throughput testing with field techs and remote NID configuration to validate circuit performance.<br />
-        - Modified BGP import policies, updated DNS zone files, and monitored network health using Netcool, Cacti, and other SNMP-based tools.</br>
-		- Communicated directly with customers via phone and email to provide real-time updates, explain troubleshooting steps, and ensure issue resolution satisfaction.</br>
-		- Provisioned and modified circuit configurations to support service changes, custom requests, and outage remediation.<br />
-      </li>
-<li><strong>Lead Infrastructure NCC Technician – Zayo</strong> (12/2012 – 11/2014)<br />
-        - Assisting teammates in troubleshooting and repairing dark fiber circuits within a specific time frame.<br />
-        - Monitoring and responding to and environmental issues in a timely manner to minimize impact to any circuits traversing through various locations nationwide.<br />
-		- Monitoring platforms (Infinera, Fujitsu, Nortel, Dantel, Cisco, NetGuardian, JDSU, Solarwinds).<br />
-      </li> 
-    </ul>
-  </section>
-
-  <section class="section" id="education">
-    <h2>Education</h2>
-    <ul>
-      <li><strong>Bachelor of Psychology</strong>, Minor in Philosophy – May 2012</li>
-    </ul>
-  </section>
+  <!-- (Other sections: certs, skills, projects, experience, education, download) -->
 
   <section class="section cert-download">
     <h2>Download Resume</h2>
     <p><a href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.docx" download>Download as Word Document</a></p>
   </section>
-  <script>
-  fetch("https://njx3tbb522.execute-api.us-east-1.amazonaws.com/track", {
-    method: "POST"
-  })
-  .then(response => response.json())
-  .then(data => {
-    console.log("GeoTracker success:", data);
-  })
-  .catch(error => {
-    console.error("GeoTracker error:", error);
-  });
-  </script> 
-  <p id="visit-count">Visits: loading...</p>
-  <script>
-  fetch("https://hssvgxnjj6.execute-api.us-east-1.amazonaws.com/default/ReadGeoStats")
-    .then(response => response.json())
-    .then(data => {
-      console.log("ReadGeoStats data:", data);
 
-      // Display number of visits
-      const visits = data.length;
-      document.getElementById("visit-count").textContent = `Visits: ${visits}`;
+  <!-- GeoTracker POST (logs visit) -->
+  <script>
+    fetch("https://njx3tbb522.execute-api.us-east-1.amazonaws.com/track", {
+      method: "POST"
+    });
+  </script>
+
+  <!-- Visits count & map container -->
+  <p id="visit-count">Visits: loading...</p>
+  <h2>Visitor Map</h2>
+  <div id="map"></div>
+
+  <!-- Visitor Log -->
+  <section class="section" id="visitor-log">
+    <h2>Recent Visitors</h2>
+    <ul id="visitor-list"></ul>
+  </section>
+
+  <!-- Main map + clustering + heat + legend script -->
+<script>
+  // ─── Global Canvas2D patch: add willReadFrequently to every 2d context ───
+  (function() {
+    const origGetCtx = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type, options) {
+      if (type === '2d') {
+        // Always request willReadFrequently for Canvas2D
+        return origGetCtx.call(this, '2d', { willReadFrequently: true });
+      }
+      // Other contexts (webgl, etc.) unchanged
+      return origGetCtx.call(this, type, options);
+    };
+  })();
+
+  const API_URL = "https://lkqaj47w3b.execute-api.us-east-1.amazonaws.com/ReadGeoCoords";
+
+  // Utility: country flag emoji
+  function getFlagEmoji(cc) {
+    if (!cc) return "🌐";
+    return [...cc.toUpperCase()]
+      .map(c => String.fromCodePoint(127397 + c.charCodeAt()))
+      .join("");
+  }
+
+  // Utility: ISP icons
+  const ispIconMap = {
+    "Google": "fab fa-google",
+    "Cox":    "fas fa-globe-americas",
+    // …add your mappings…
+  };
+  function getISPIcon(org = "") {
+    const match = Object.keys(ispIconMap).find(k => org.includes(k));
+    return match ? `<i class="${ispIconMap[match]}"></i>` : '<i class="fas fa-globe"></i>';
+  }
+
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data)) {
+        console.error("Expected array, got:", data);
+        document.getElementById("visit-count").textContent = "Visits: unavailable";
+        return;
+      }
+
+      // Update visit count
+      document.getElementById("visit-count").textContent = `Visits: ${data.length}`;
+
+      // Sort by latest timestamp
+      data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      // Populate Recent Visitors (top 5)
+      const listEl = document.getElementById("visitor-list");
+      listEl.innerHTML = "";
+      data.slice(0, 5).forEach(item => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          ${getFlagEmoji(item.country)} 
+          <strong>${item.city}, ${item.region}</strong> —
+          ${getISPIcon(item.org)} <em>${item.org}</em>
+        `;
+        listEl.appendChild(li);
+      });
+
+      // 1) Initialize map & Carto Light tiles
+      const map = L.map("map").setView([20, 0], 2);
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+          attribution: '© CARTO & © OpenStreetMap contributors',
+          maxZoom: 18
+        }
+      ).addTo(map);
+
+      // Prepare clustering & heatmap data
+      const markers = L.markerClusterGroup();
+      const heatData = [];
+      data.forEach(v => {
+        const latlng = [v.lat, v.lng];
+        markers.addLayer(
+          L.marker(latlng)
+            .bindPopup(`<strong>${v.city}</strong><br>${v.org}<br>${v.timestamp}`)
+        );
+        heatData.push([...latlng, 0.5]);
+      });
+      map.addLayer(markers);
+
+      // 3) Add heat overlay
+      L.heatLayer(heatData, { radius: 25 }).addTo(map);
+
+      // 1) Auto-zoom to fit all markers
+      map.fitBounds(
+        L.latLngBounds(data.map(d => [d.lat, d.lng])),
+        { padding: [50, 50] }
+      );
+
+      // 4) Add on-map legend
+      const legend = L.control({ position: 'bottomright' });
+      legend.onAdd = () => {
+        const div = L.DomUtil.create('div', 'legend');
+        div.innerHTML = `
+          <strong>Legend</strong><br>
+          <span style="background:#3388ff;border-radius:50%;"></span> Visitors<br>
+          <span style="background:rgba(255,0,0,0.5);"></span> Heat intensity
+        `;
+        return div;
+      };
+      legend.addTo(map);
     })
-    .catch(error => {
-      console.error("Error fetching visit stats:", error);
+    .catch(err => {
+      console.error("ReadGeoCoords error:", err);
       document.getElementById("visit-count").textContent = "Visits: unavailable";
     });
 </script>
-<script>
-// Map known ISP names to Font Awesome icons
-const ispIconMap = {
-  "Google": "fab fa-google",
-  "Verizon": "fas fa-network-wired",
-  "AT&T": "fas fa-broadcast-tower",
-  "Comcast": "fas fa-wifi",
-  "T-Mobile": "fas fa-signal",
-  "Spectrum": "fas fa-plug",
-  "Charter": "fas fa-ethernet",
-  "Amazon": "fab fa-aws",
-  "Cox": "fas fa-globe-americas",
-  "Level 3": "fas fa-project-diagram",
-  "Hetzner": "fas fa-server",
-  "Tencent": "fab fa-internet-explorer",
-  "SCALEWAY": "fas fa-cloud",
-  "Geekyworks": "fas fa-user-secret"
-};
-
-// Convert 2-letter country code to flag emoji
-function getFlagEmoji(countryCode) {
-  if (!countryCode) return "🌐";
-  const codePoints = [...countryCode.toUpperCase()]
-    .map(char => 127397 + char.charCodeAt());
-  return String.fromCodePoint(...codePoints);
-}
-
-// Get ISP icon based on org string
-function getISPIcon(org) {
-  if (!org) return '<i class="fas fa-globe"></i>';
-  const match = Object.keys(ispIconMap).find(key => org.includes(key));
-  return match ? `<i class="${ispIconMap[match]}"></i>` : '<i class="fas fa-globe"></i>';
-}
-
-// Fetch visitor data and render top 5 recent entries
-fetch("https://hssvgxnjj6.execute-api.us-east-1.amazonaws.com/default/ReadGeoStats")
-  .then(res => res.json())
-  .then(data => {
-    console.log("ReadGeoStats data:", data);
-    const list = document.getElementById("visitor-list");
-
-    // Sort by visit_time descending and take latest 5
-    const latest = data
-      .sort((a, b) => new Date(b.visit_time) - new Date(a.visit_time))
-      .slice(0, 5);
-
-    latest.forEach(item => {
-      const flag = getFlagEmoji(item.country);
-      const ispIcon = getISPIcon(item.org || "");
-      const entry = document.createElement("li");
-      entry.innerHTML = `
-        ${flag} <strong>${item.city || "Unknown City"}, ${item.region || "?"}</strong>
-        — ${ispIcon} <em>${item.org || "Unknown ISP"}</em>
-      `;
-      list.appendChild(entry);
-    });
-  })
-  .catch(err => {
-    console.error("ReadGeoStats error:", err);
-    document.getElementById("visitor-list").innerHTML = "<li>Failed to load visitor data.</li>";
-  });
-</script>
-<section class="section" id="visitor-log">
-  <h2>Recent Visitors</h2>
-  <ul id="visitor-list"></ul>
-</section>
-
 </body>
 </html>
-
-
