@@ -62,7 +62,7 @@ def lambda_handler(event, context):
             "city": {"S": city},
             "org": {"S": org},
             "user_agent": {"S": user_agent},
-            "expire_time": {"N": str(expire_time)}
+            "expire_time": {"N": str(expire_time)},
            
             item["latitude"] = {"N": str(latitude)}
             item["longitude"] = {"N": str(longitude)}
