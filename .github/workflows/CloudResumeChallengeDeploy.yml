@@ -1,4 +1,4 @@
-name: Deploy Static Site
+name: Publish CloudResumeChallenge
 
 on:
   push:
@@ -6,15 +6,15 @@ on:
       - main
 
 permissions:
-  id-token: write           # for OIDC
-  contents: read            # to checkout
+  id-token: write
+  contents: read
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Configure AWS creds via OIDC
@@ -23,19 +23,12 @@ jobs:
           role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-LambdaDeploy
           aws-region: us-east-1
 
-      - name: Prepare website files
+      - name: Publish CloudResumeChallenge.html to S3
         run: |
-          # copy your resume HTML to index.html for S3
-          cp CloudResumeChallenge.html index.html
-          # if you have any CSS/JS or assets folder, sync that too
-          # mkdir -p public && cp -r assets public/
-      
-      - name: Publish to S3
-        run: |
-          # sync only CloudResumeChallenge.html and any folders (e.g. public/) 
-          aws s3 sync . s3:subrealstudios.com \
-            --delete \
-            --exclude "*" \
-            --include "CloudResumeChallenge.html" \
-            --include "public/*" \
+          aws s3 cp CloudResumeChallenge.html s3://subrealstudios.com/CloudResumeChallenge.html \
             --acl public-read
+          
+      # If you have additional assets (css, js, images), copy them equally:
+      # - name: Publish assets folder
+      #   run: |
+      #     aws s3 sync assets/ s3://subrealstudios.com/assets/ --acl public-read
