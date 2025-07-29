@@ -40,8 +40,8 @@ def lambda_handler(event, context):
         for item in items:
             try:
                 mapped.append({
-                    "lat": float(item["latitude"]),
-                    "lng": float(item["longitude"]),
+                    "lat": item["latitude"],
+                    "lng": item["longitude"],
                     "city": item.get("city", "Unknown"),
                     "org": item.get("org", "Unknown"),
                     "timestamp": item.get("visit_time", "")
