@@ -25,8 +25,7 @@ jobs:
 
       - name: Publish CloudResumeChallenge.html to S3
         run: |
-          aws s3 cp CloudResumeChallenge.html s3://subrealstudios.com/CloudResumeChallenge.html \
-            --acl public-read
+          aws s3 cp CloudResumeChallenge.html s3://subrealstudios.com/CloudResumeChallenge.html
           
       # If you have additional assets (css, js, images), copy them equally:
       # - name: Publish assets folder
