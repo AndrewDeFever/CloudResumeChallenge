@@ -1,7 +1,11 @@
 import json
 import boto3
 import os
-import decimal
+import decimal        
+import traceback
+
+traceback.print_exc()
+
 from boto3.dynamodb.conditions import Attr
 
 dynamodb = boto3.resource("dynamodb")
@@ -61,6 +65,13 @@ def lambda_handler(event, context):
     except Exception as e:
         return {
             "statusCode": 500,
+            "headers": headers,
+            "body": json.dumps({
+                "message": "Internal Server Error",
+                "error": str(e),
+                "type": type(e).__name__
+            })
+        }
             "headers": headers,
             "body": json.dumps({"error": str(e)})
         }
