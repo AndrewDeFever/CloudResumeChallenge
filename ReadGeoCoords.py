@@ -1,14 +1,14 @@
 import json
 import boto3
 import os
+import decimal  # ← REQUIRED
 from boto3.dynamodb.conditions import Attr
 
-# 👇 Decimal encoder to handle DynamoDB number serialization
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, decimal.Decimal):
             return float(o)
-        return super().default(o)
+        return super(DecimalEncoder, self).default(o)
 
 
 dynamodb = boto3.resource("dynamodb")
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": headers,
-            "body": json.dumps(mapped, cls=DecimalEncoder)
+            "body": json.dumps(mapped, cls=DecimalEncoder)  # 🎯 This is now valid
         }
 
     except Exception as e:
