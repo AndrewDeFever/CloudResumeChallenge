@@ -7,14 +7,13 @@ from boto3.dynamodb.conditions import Attr
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
 
+# Recursively convert Decimals to float or int
 def clean_decimals(obj):
-    """Recursively convert Decimal to float or int."""
     if isinstance(obj, list):
         return [clean_decimals(i) for i in obj]
     elif isinstance(obj, dict):
         return {k: clean_decimals(v) for k, v in obj.items()}
     elif isinstance(obj, decimal.Decimal):
-        # Convert to int if it’s a whole number, else float
         return int(obj) if obj % 1 == 0 else float(obj)
     else:
         return obj
@@ -34,27 +33,29 @@ def lambda_handler(event, context):
         }
 
     try:
+        # Only return items that have lat/lng (TTL not expired)
         response = table.scan(
             FilterExpression=Attr("latitude").exists() & Attr("longitude").exists()
         )
+
         items = response.get("Items", [])
         mapped = []
 
-for item in items:
-    try:
-        item["latitude"] = float(item["latitude"])
-        item["longitude"] = float(item["longitude"])
-        mapped.append({
-            "lat": item["latitude"],
-            "lng": item["longitude"],
-            "city": item.get("city", "Unknown"),
-            "org": item.get("org", "Unknown"),
-            "timestamp": item.get("visit_time", "")
-        })
-    except Exception as parse_err:
-        print("Error mapping item:", parse_err)
+        for item in items:
+            try:
+                # Ensure no Decimal slips through
+                lat = float(item["latitude"])
+                lng = float(item["longitude"])
 
-
+                mapped.append({
+                    "lat": lat,
+                    "lng": lng,
+                    "city": item.get("city", "Unknown"),
+                    "org": item.get("org", "Unknown"),
+                    "timestamp": item.get("visit_time", "")
+                })
+            except Exception as parse_err:
+                print("Error mapping item:", parse_err)
 
         cleaned = clean_decimals(mapped)
 
@@ -67,10 +68,6 @@ for item in items:
     except Exception as e:
         return {
             "statusCode": 500,
-            "headers": headers,
-            "body": json.dumps({"error": str(e)})
-        }
-
             "headers": headers,
             "body": json.dumps({"error": str(e)})
         }
