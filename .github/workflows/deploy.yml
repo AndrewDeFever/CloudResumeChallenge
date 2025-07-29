@@ -36,5 +36,5 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name GeoTracker \
-            --zip-file fileb://function.zip
+            --zip-file fileb://lambda_ReadGeoCoords.zip
             --zip-file fileb://lambda_geoip.zip
