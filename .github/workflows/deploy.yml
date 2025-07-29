@@ -35,14 +35,12 @@ jobs:
 - name: Zip ReadGeoCoords Lambda
   run: zip lambda_ReadGeoCoords.zip ReadGeoCoords.py
 
-- name: Deploy GeoTracker Lambda
+- name: Deploy Lambda function
   run: |
     aws lambda update-function-code \
       --function-name GeoTracker \
       --zip-file fileb://lambda_geoip.zip
 
-- name: Deploy ReadGeoCoords Lambda
-  run: |
     aws lambda update-function-code \
       --function-name ReadGeoCoords \
       --zip-file fileb://lambda_ReadGeoCoords.zip
