@@ -29,18 +29,18 @@ jobs:
       - name: Run unit tests
         run: python -m pytest tests
 
-- name: Zip GeoTracker Lambda
-  run: zip lambda_geoip.zip GeoTracker.py
+      - name: Zip GeoTracker Lambda
+        run: zip lambda_geoip.zip GeoTracker.py
 
-- name: Zip ReadGeoCoords Lambda
-  run: zip lambda_ReadGeoCoords.zip ReadGeoCoords.py
+      - name: Zip ReadGeoCoords Lambda
+        run: zip lambda_ReadGeoCoords.zip ReadGeoCoords.py
 
-- name: Deploy Lambda function
-  run: |
-    aws lambda update-function-code \
-      --function-name GeoTracker \
-      --zip-file fileb://lambda_geoip.zip
+      - name: Deploy Lambda function
+        run: |
+          aws lambda update-function-code \
+            --function-name GeoTracker \
+            --zip-file fileb://lambda_geoip.zip
 
-    aws lambda update-function-code \
-      --function-name ReadGeoCoords \
-      --zip-file fileb://lambda_ReadGeoCoords.zip
+          aws lambda update-function-code \
+            --function-name ReadGeoCoords \
+            --zip-file fileb://lambda_ReadGeoCoords.zip
