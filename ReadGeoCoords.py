@@ -67,7 +67,3 @@ def lambda_handler(event, context):
                 "type": type(e).__name__
             })
         }
-
-            "headers": headers,
-            "body": json.dumps({"error": str(e)})
-        }
