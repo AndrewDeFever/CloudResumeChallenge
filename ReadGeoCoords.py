@@ -40,19 +40,20 @@ def lambda_handler(event, context):
         items = response.get("Items", [])
         mapped = []
 
-    for item in items:
-        try:
-            item["latitude"] = float(item["latitude"])
-            item["longitude"] = float(item["longitude"])
-            mapped.append({
-                "lat": item["latitude"],
-                "lng": item["longitude"],
-                "city": item.get("city", "Unknown"),
-                "org": item.get("org", "Unknown"),
-                "timestamp": item.get("visit_time", "")
-            })
+for item in items:
+    try:
+        item["latitude"] = float(item["latitude"])
+        item["longitude"] = float(item["longitude"])
+        mapped.append({
+            "lat": item["latitude"],
+            "lng": item["longitude"],
+            "city": item.get("city", "Unknown"),
+            "org": item.get("org", "Unknown"),
+            "timestamp": item.get("visit_time", "")
+        })
     except Exception as parse_err:
         print("Error mapping item:", parse_err)
+
 
 
         cleaned = clean_decimals(mapped)
