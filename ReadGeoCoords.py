@@ -40,8 +40,8 @@ def lambda_handler(event, context):
         for item in items:
             try:
                 mapped.append({
-                    "lat": item["latitude"],
-                    "lng": item["longitude"],
+                    "lat": float(item["latitude"]),
+                    "lng": float(item["longitude"]),
                     "city": item.get("city", "Unknown"),
                     "org": item.get("org", "Unknown"),
                     "timestamp": item.get("visit_time", "")
@@ -52,8 +52,9 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": headers,
-            "body": json.dumps(mapped, cls=DecimalEncoder)  # 🎯 This is now valid
+            "body": json.dumps(mapped)
         }
+
 
     except Exception as e:
         return {
