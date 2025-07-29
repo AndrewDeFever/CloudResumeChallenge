@@ -32,8 +32,8 @@ jobs:
       
       - name: Publish to S3
         run: |
-          # sync only index.html and any folders (e.g. public/) 
-          aws s3 sync . s3:::subrealstudios.com \
+          # sync only CloudResumeChallenge.html and any folders (e.g. public/) 
+          aws s3 sync . s3:subrealstudios.com \
             --delete \
             --exclude "*" \
             --include "CloudResumeChallenge.html" \
