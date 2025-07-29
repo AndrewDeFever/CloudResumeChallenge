@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Attr
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
 
-# Recursively convert Decimals to float or int
+# Recursively convert Decimal to float or int
 def clean_decimals(obj):
     if isinstance(obj, list):
         return [clean_decimals(i) for i in obj]
@@ -33,7 +33,6 @@ def lambda_handler(event, context):
         }
 
     try:
-        # Only return items that have lat/lng (TTL not expired)
         response = table.scan(
             FilterExpression=Attr("latitude").exists() & Attr("longitude").exists()
         )
@@ -42,21 +41,15 @@ def lambda_handler(event, context):
         mapped = []
 
         for item in items:
-            try:
-                # Ensure no Decimal slips through
-                lat = float(item["latitude"])
-                lng = float(item["longitude"])
+            mapped.append({
+                "lat": item.get("latitude"),
+                "lng": item.get("longitude"),
+                "city": item.get("city", "Unknown"),
+                "org": item.get("org", "Unknown"),
+                "timestamp": item.get("visit_time", "")
+            })
 
-                mapped.append({
-                    "lat": lat,
-                    "lng": lng,
-                    "city": item.get("city", "Unknown"),
-                    "org": item.get("org", "Unknown"),
-                    "timestamp": item.get("visit_time", "")
-                })
-            except Exception as parse_err:
-                print("Error mapping item:", parse_err)
-
+        # Clean all decimals (including nested ones)
         cleaned = clean_decimals(mapped)
 
         return {
