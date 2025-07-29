@@ -38,9 +38,11 @@ def lambda_handler(event, context):
         )
 
         items = response.get("Items", [])
+        cleaned_items = clean_decimals(items)
+
         mapped = []
 
-        for item in items:
+        for item in cleaned_items:
             mapped.append({
                 "lat": item.get("latitude"),
                 "lng": item.get("longitude"),
@@ -49,8 +51,6 @@ def lambda_handler(event, context):
                 "timestamp": item.get("visit_time", "")
             })
 
-        # Clean all decimals (including nested ones)
-        cleaned = clean_decimals(mapped)
 
         return {
             "statusCode": 200,
