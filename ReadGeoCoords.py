@@ -43,6 +43,8 @@ def lambda_handler(event, context):
         mapped = [{
             "lat": itm.get("latitude"),
             "lng": itm.get("longitude"),
+            "country": itm.get("country", "Unknown"),
+            "region":  itm.get("region", "Unknown"),
             "city": itm.get("city", "Unknown"),
             "org": itm.get("org", "Unknown"),
             "timestamp": itm.get("visit_time", "")
