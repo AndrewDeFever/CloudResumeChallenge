@@ -30,8 +30,7 @@ jobs:
         run: python -m pytest tests
 
       - name: Package Lambda function
-        run: zip lambda_geoip.zip GeoTracker.py
-        run: zip lambda_geoip.zip ReadGeoCoords.py
+        run: zip lambda_geoip.zip GeoTracker.py ReadGeoCoords.py
 
       - name: Deploy Lambda function
         run: |
