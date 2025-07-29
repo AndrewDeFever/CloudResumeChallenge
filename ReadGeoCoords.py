@@ -1,17 +1,12 @@
 import json
 import boto3
 import os
-import decimal        
-import traceback
-
-traceback.print_exc()
-
+import decimal
 from boto3.dynamodb.conditions import Attr
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["DYNAMO_TABLE_NAME"])
 
-# Recursively convert Decimal to float or int
 def clean_decimals(obj):
     if isinstance(obj, list):
         return [clean_decimals(i) for i in obj]
@@ -37,32 +32,32 @@ def lambda_handler(event, context):
         }
 
     try:
-        response = table.scan(
+        resp = table.scan(
             FilterExpression=Attr("latitude").exists() & Attr("longitude").exists()
         )
-
-        items = response.get("Items", [])
+        items = resp.get("Items", [])
+        # clean all Decimal values first
         cleaned_items = clean_decimals(items)
 
-        mapped = []
+        # map into the shape the frontend expects
+        mapped = [{
+            "lat": itm.get("latitude"),
+            "lng": itm.get("longitude"),
+            "city": itm.get("city", "Unknown"),
+            "org": itm.get("org", "Unknown"),
+            "timestamp": itm.get("visit_time", "")
+        } for itm in cleaned_items]
 
-        for item in cleaned_items:
-            mapped.append({
-                "lat": item.get("latitude"),
-                "lng": item.get("longitude"),
-                "city": item.get("city", "Unknown"),
-                "org": item.get("org", "Unknown"),
-                "timestamp": item.get("visit_time", "")
-            })
-
-
+        # <-- RETURN MAPPED, not 'cleaned' which doesn't exist
         return {
             "statusCode": 200,
             "headers": headers,
-            "body": json.dumps(cleaned)
+            "body": json.dumps(mapped)
         }
 
     except Exception as e:
+        # log full traceback for debugging
+        import traceback; traceback.print_exc()
         return {
             "statusCode": 500,
             "headers": headers,
@@ -72,6 +67,7 @@ def lambda_handler(event, context):
                 "type": type(e).__name__
             })
         }
+
             "headers": headers,
             "body": json.dumps({"error": str(e)})
         }
