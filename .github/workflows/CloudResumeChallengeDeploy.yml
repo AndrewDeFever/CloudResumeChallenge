@@ -26,8 +26,8 @@ jobs:
       - name: Publish CloudResumeChallenge.html to S3
         run: |
           aws s3 cp CloudResumeChallenge.html s3://subrealstudios.com/CloudResumeChallenge.html
-          
-      # If you have additional assets (css, js, images), copy them equally:
-      # - name: Publish assets folder
-      #   run: |
-      #     aws s3 sync assets/ s3://subrealstudios.com/assets/ --acl public-read
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E3QFBB3COE2N4Y \
+            --paths "/CloudResumeChallenge.html"
