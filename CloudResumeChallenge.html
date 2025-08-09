@@ -77,6 +77,78 @@
     .nav-links a:hover{ color: var(--text); }
 
     /* Links */
+    /* Tooltips */
+    /* Single tooltip container */
+    #tooltip-bubble {
+      position: fixed;
+      max-width: 520px;
+      padding: .6rem .75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      background: rgba(0,0,0,.85);
+      color: #e6f3ff;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      z-index: 2000;
+      display: none;
+      pointer-events: none;
+    }
+
+    .tooltip{ position:relative; cursor:help; border-bottom: 1px dotted var(--accent-2); }
+    .tooltip:focus{ outline: 2px dashed var(--accent-2); outline-offset: 2px; border-radius:4px; }
+    .tooltip:hover::after, .tooltip:focus::after{ display: none !important; pointer-events:none;
+      content: attr(data-tip);
+      position:absolute; left: 50%; transform: translateX(-50%);
+      bottom: calc(100% + 10px);
+      background: rgba(0,0,0,.85);
+      color:#e6f3ff;
+      padding:.6rem .75rem;
+      font-size:1rem; line-height:1.5;
+      width: min(520px, 90vw);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      z-index: 50;
+      text-align: left;
+    }
+    .tooltip:hover::before, .tooltip:focus::before{ display: none !important; pointer-events:none;
+      content:"";
+      position:absolute; left:50%; transform: translateX(-50%);
+      bottom: calc(100% + 6px);
+      border: 7px solid transparent;
+      border-top-color: rgba(0,0,0,.85);
+      z-index: 49;
+    }
+
+    /* Tooltip styling */
+    .tooltip {
+      position: relative;
+      cursor: help;
+      border-bottom: 1px dotted var(--accent);
+    }
+    .tooltip::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 50%;
+      bottom: 125%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: .4rem .6rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      max-width: 240px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      white-space: normal;
+      z-index: 10;
+    }
+    .tooltip:focus::after,
+    .tooltip:hover::after {
+      opacity: 1;
+    }
+
     /* External link buttons */
     .external-link, .btn {
       font-weight: 800;
@@ -235,14 +307,14 @@
         <div>
           <h3 class="meta" style="margin:.2rem 0 .4rem;">Frontend & DNS</h3>
           <ul>
-            <li>Static site on <strong>Amazon S3</strong> served globally through <strong>CloudFront</strong> (HTTPS via <strong>ACM</strong>).</li>
+            <li>Static site on <strong>Amazon S3</strong> served globally through <strong>CloudFront</strong> (HTTPS via <strong><span class="tooltip" data-tip="AWS Certificate Manager. Manages SSL/TLS certificates for your domains so you can serve HTTPS without manual certificate renewal."><span class="tooltip" tabindex="0" aria-label="AWS Certificate Manager. Provisions and auto‑renews TLS/SSL certificates for your domains so CloudFront and other services can serve HTTPS without manual cert juggling." data-tip="AWS Certificate Manager. Provisions and auto‑renews TLS/SSL certificates for your domains so CloudFront and other services can serve HTTPS without manual cert juggling.">ACM</span></span></strong>).</li>
             <li>Public DNS with <strong>Route 53</strong>: apex <em>ALIAS</em> to CloudFront; optional <code>www</code> CNAME/redirect.</li>
-            <li>Cache-control headers + automatic <strong>CloudFront invalidation</strong> on deploy for zero-stale rollouts.</li>
+            <li>Cache-control headers + automatic <strong><span class="tooltip" data-tip="The process of telling CloudFront to clear cached files so updated content from S3 is served immediately worldwide."><span class="tooltip" tabindex="0" aria-label="A command that tells CloudFront to purge cached objects so new versions are served immediately after deployment. Useful for cache-busted assets and HTML updates." data-tip="A command that tells CloudFront to purge cached objects so new versions are served immediately after deployment. Useful for cache-busted assets and HTML updates.">CloudFront invalidation</span></span></strong> on deploy for zero-stale rollouts.</li>
           </ul>
 
           <h3 class="meta" style="margin:.8rem 0 .4rem;">Serverless Backend</h3>
           <ul>
-            <li><strong>API Gateway</strong> → <strong>Lambda (Python)</strong> to record visits; data stored in <strong>DynamoDB</strong>.</li>
+            <li><strong><span class="tooltip" tabindex="0" aria-label="Fully managed API front door for the Lambda function. Handles routing, CORS, auth (if needed), and integrates with CloudWatch for metrics and logs." data-tip="Fully managed API front door for the Lambda function. Handles routing, CORS, auth (if needed), and integrates with CloudWatch for metrics and logs.">API Gateway</span></strong> → <strong><span class="tooltip" tabindex="0" aria-label="Serverless compute that runs your visit‑logging code on demand. You only pay for execution time — no servers to patch or scale." data-tip="Serverless compute that runs your visit‑logging code on demand. You only pay for execution time — no servers to patch or scale.">Lambda (Python)</span></strong> to record visits; data stored in <strong><span class="tooltip" tabindex="0" aria-label="AWS’s managed NoSQL key‑value database. Here it stores visit records from Lambda; scales automatically and requires minimal ops." data-tip="AWS’s managed NoSQL key‑value database. Here it stores visit records from Lambda; scales automatically and requires minimal ops.">DynamoDB</span></strong>.</li>
             <li>CORS enabled for the site origin; structured JSON responses consumed by the client.</li>
             <li>CloudWatch logging for troubleshooting and basic observability.</li>
           </ul>
@@ -251,10 +323,10 @@
         <div class="card" style="background:rgba(255,255,255,.04)">
           <h3 class="meta" style="margin:.2rem 0 .4rem;">CI/CD & Security</h3>
           <ul>
-            <li><strong>GitHub Actions</strong> with <strong>OIDC</strong> to assume a deploy role — no long‑lived AWS keys.</li>
-            <li><strong>Least‑privilege IAM</strong>: scoped policies for S3 sync and CloudFront invalidation only.</li>
+            <li><strong>GitHub Actions</strong> with <strong><span class="tooltip" data-tip="OpenID Connect. Lets GitHub Actions securely assume AWS IAM roles without storing long-lived AWS keys, using short-lived credentials tied to your repo."><span class="tooltip" tabindex="0" aria-label="OpenID Connect. Lets GitHub Actions obtain short‑lived credentials to assume an AWS role during CI/CD — no long‑lived AWS keys stored in GitHub, reducing secret sprawl." data-tip="OpenID Connect. Lets GitHub Actions obtain short‑lived credentials to assume an AWS role during CI/CD — no long‑lived AWS keys stored in GitHub, reducing secret sprawl.">OIDC</span></span></strong> to assume a deploy role — no long‑lived AWS keys.</li>
+            <li><strong><span class="tooltip" tabindex="0" aria-label="Designing roles and policies so each principal has only the specific permissions it needs — in this case, S3 sync and CloudFront invalidation for deploys, nothing more." data-tip="Designing roles and policies so each principal has only the specific permissions it needs — in this case, S3 sync and CloudFront invalidation for deploys, nothing more.">Least‑privilege IAM</span></strong>: scoped policies for S3 sync and <span class="tooltip" data-tip="The process of telling CloudFront to clear cached files so updated content from S3 is served immediately worldwide."><span class="tooltip" tabindex="0" aria-label="A command that tells CloudFront to purge cached objects so new versions are served immediately after deployment. Useful for cache-busted assets and HTML updates." data-tip="A command that tells CloudFront to purge cached objects so new versions are served immediately after deployment. Useful for cache-busted assets and HTML updates.">CloudFront invalidation</span></span> only.</li>
             <li>Trust policy restricted to the repo/workflow; environment variables used for config (no secrets in code).</li>
-            <li>S3 access and CloudFront enforce HTTPS; DNS + certs managed by ACM/Route 53.</li>
+            <li>S3 access and CloudFront enforce HTTPS; DNS + certs managed by <span class="tooltip" data-tip="AWS Certificate Manager. Manages SSL/TLS certificates for your domains so you can serve HTTPS without manual certificate renewal."><span class="tooltip" tabindex="0" aria-label="AWS Certificate Manager. Provisions and auto‑renews TLS/SSL certificates for your domains so CloudFront and other services can serve HTTPS without manual cert juggling." data-tip="AWS Certificate Manager. Provisions and auto‑renews TLS/SSL certificates for your domains so CloudFront and other services can serve HTTPS without manual cert juggling.">ACM</span></span>/Route 53.</li>
           </ul>
 
           <h3 class="meta" style="margin:.8rem 0 .4rem;">UI Features</h3>
@@ -451,5 +523,43 @@
         document.getElementById("visit-count").textContent = "Visits: unavailable";
       });
   </script>
+
+  <script>
+    (function(){
+      const bubble = Object.assign(document.createElement('div'), { id: 'tooltip-bubble' });
+      document.body.appendChild(bubble);
+
+      function showTip(el){
+        const text = el.getAttribute('data-tip') || el.getAttribute('aria-label');
+        if(!text) return;
+        bubble.textContent = text;
+        bubble.style.display = 'block';
+        // Position above the element, centered
+        const rect = el.getBoundingClientRect();
+        const padding = 10;
+        const bubbleRect = bubble.getBoundingClientRect();
+        let top = rect.top - bubbleRect.height - padding;
+        let left = rect.left + (rect.width/2) - (bubbleRect.width/2);
+        // Keep within viewport
+        left = Math.max(8, Math.min(left, window.innerWidth - bubbleRect.width - 8));
+        top = Math.max(8, top);
+        bubble.style.top = top + 'px';
+        bubble.style.left = left + 'px';
+      }
+      function hideTip(){ bubble.style.display = 'none'; }
+
+      function bind(el){
+        el.addEventListener('mouseenter', () => showTip(el));
+        el.addEventListener('focus', () => showTip(el));
+        el.addEventListener('mouseleave', hideTip);
+        el.addEventListener('blur', hideTip);
+        // Touch support
+        el.addEventListener('touchstart', (e) => { showTip(el); setTimeout(hideTip, 2000); }, {passive:true});
+      }
+
+      document.querySelectorAll('.tooltip').forEach(bind);
+    })();
+  </script>
+
 </body>
 </html>
