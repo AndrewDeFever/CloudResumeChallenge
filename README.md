@@ -68,10 +68,8 @@ A serverless web resume hosted on AWS using S3, CloudFront, and Route 53, with a
 - [x] Add `ReadGeoStats` Lambda to fetch and expose visitor data via API Gateway
 - [x] Implement frontend integration with dynamic flags and ISP icons
 - [x] Secure CI/CD using GitHub Actions with OpenID Connect (OIDC) authentication
-- [ ] Deduplicate or group visits by IP (e.g., daily unique count)
-- [ ] Add request throttling or basic abuse protection (e.g., API Gateway usage plans)
-- [ ] Optionally secure API routes using IAM auth or API Gateway token auth
-- [ ] Integrate AWS Secrets Manager (if future API keys or credentials are introduced)
+- [x] Deduplicate or group visits by IP (e.g., daily unique count)
+- [x] Add request throttling or basic abuse protection (e.g., API Gateway usage plans)
 - [ ] Expand CloudFormation template to cover full infrastructure deployment (S3, CloudFront, Route 53, IAM, etc.)
 - [ ] Add monitoring and alarms for Lambda duration, error rate, and DynamoDB capacity
 
