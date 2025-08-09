@@ -208,46 +208,83 @@
         <a class="btn" href="mailto:AndrewDeFever@gmail.com"><i class="fa-solid fa-envelope"></i>Email</a>
         <a class="btn" href="https://github.com/AndrewDeFever" target="_blank" rel="noreferrer"><i class="fa-brands fa-github"></i>GitHub</a>
         <a class="btn" href="https://www.linkedin.com/in/andrewdefever/" target="_blank" rel="noreferrer"><i class="fa-brands fa-linkedin"></i>LinkedIn</a>
-        <a class="btn external-link" href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.docx" download><i class="fa-solid fa-file-arrow-down"></i>Resume</a>
+        <a class="btn external-link" href="./CloudResumeChallenge/Andrew_DeFever_Resume_2025.docx" download><i class="fa-solid fa-file-arrow-down"></i>Resume</a>
       </div>
     </div>
   </header>
 
   <main id="main" class="container">
+    
+    <section id="summary" class="card">
+      <h2>Professional Summary</h2>
+      <p>AWS Certified Cloud Practitioner and CompTIA Security+ certified IT professional with 10+ years of experience in systems analysis, enterprise networking, and infrastructure operations. Proven track record in optimizing network performance, streamlining access control, and leading cross-functional teams to resolve complex technical issues. Skilled in cloud fundamentals, secure infrastructure management, and multi-vendor network troubleshooting, with a focus on delivering scalable, resilient, and reliable solutions in fast-paced environments.</p>
+    
+      <figure style="margin:1rem 0 0;">
+        <img src="architecture.svg" alt="Diagram: User → Route 53 → CloudFront → S3 and CloudFront → API Gateway → Lambda → DynamoDB" style="width:100%;max-width:980px;border:1px solid var(--card-border);border-radius:12px;box-shadow: var(--shadow);display:block;margin-inline:auto;">
+        <figcaption class="meta" style="text-align:center;margin-top:.5rem;">Architecture at a glance — served by CloudFront from S3; backend visits logged via API Gateway → Lambda → DynamoDB.</figcaption>
+      </figure>
+
+    </section>
+
+    
     <section id="about" class="card">
       <h2>About This Site</h2>
-      <p class="meta">Built as part of the <strong>Cloud Resume Challenge</strong>. Deployed with a simple AWS serverless stack and CI/CD.</p>
+      <p class="meta">Built as part of the <strong>Cloud Resume Challenge</strong> to demonstrate cloud deployment, automation, and a small serverless app.</p>
+
       <div class="grid grid-2">
-        <ul>
-          <li>Static hosting on <strong>Amazon S3</strong> with <strong>CloudFront</strong> CDN</li>
-          <li><strong>API Gateway</strong> + <strong>Lambda (Python)</strong> for visit tracking</li>
-          <li>Visitor logs stored in <strong>DynamoDB</strong></li>
-          <li>OIDC GitHub Actions deploy (S3 sync + CloudFront invalidation)</li>
-        </ul>
-        <div class="card" style="background:rgba(255,255,255,.04)">
-          <p class="meta">Repo & pipelines</p>
+        <div>
+          <h3 class="meta" style="margin:.2rem 0 .4rem;">Frontend & DNS</h3>
           <ul>
-            <div><a class="btn external-link" href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank" rel="noreferrer"><i class="fa-brands fa-github"></i> View GitHub Repo</a></div>
-            <li>Least-privilege IAM for CI (OIDC) with CloudFront invalidation</li>
-            <li>Lambda packaged with external deps and env vars (no secrets in code)</li>
+            <li>Static site on <strong>Amazon S3</strong> served globally through <strong>CloudFront</strong> (HTTPS via <strong>ACM</strong>).</li>
+            <li>Public DNS with <strong>Route 53</strong>: apex <em>ALIAS</em> to CloudFront; optional <code>www</code> CNAME/redirect.</li>
+            <li>Cache-control headers + automatic <strong>CloudFront invalidation</strong> on deploy for zero-stale rollouts.</li>
           </ul>
+
+          <h3 class="meta" style="margin:.8rem 0 .4rem;">Serverless Backend</h3>
+          <ul>
+            <li><strong>API Gateway</strong> → <strong>Lambda (Python)</strong> to record visits; data stored in <strong>DynamoDB</strong>.</li>
+            <li>CORS enabled for the site origin; structured JSON responses consumed by the client.</li>
+            <li>CloudWatch logging for troubleshooting and basic observability.</li>
+          </ul>
+        </div>
+
+        <div class="card" style="background:rgba(255,255,255,.04)">
+          <h3 class="meta" style="margin:.2rem 0 .4rem;">CI/CD & Security</h3>
+          <ul>
+            <li><strong>GitHub Actions</strong> with <strong>OIDC</strong> to assume a deploy role — no long‑lived AWS keys.</li>
+            <li><strong>Least‑privilege IAM</strong>: scoped policies for S3 sync and CloudFront invalidation only.</li>
+            <li>Trust policy restricted to the repo/workflow; environment variables used for config (no secrets in code).</li>
+            <li>S3 access and CloudFront enforce HTTPS; DNS + certs managed by ACM/Route 53.</li>
+          </ul>
+
+          <h3 class="meta" style="margin:.8rem 0 .4rem;">UI Features</h3>
+          <ul>
+            <li>Interactive visitor map using <strong>Leaflet</strong> with marker clustering and heat overlay.</li>
+            <li>Recent visitor list with country flags and ISP icons; total visit count.</li>
+          </ul>
+          <div style="margin-top:.6rem;">
+            <a class="btn external-link" href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank" rel="noreferrer">
+              <i class="fa-brands fa-github"></i> View GitHub Repo
+            </a>
+          </div>
         </div>
       </div>
     </section>
+
 
     <section id="certs" class="card">
       <h2>Certifications</h2>
       <div class="badges" aria-label="Certification badges">
         <a class="btn external-link" href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank" rel="noreferrer">
-          <img src="./CloudResumeChallenge/aws-certified-cloud-practitioner.png" alt="AWS Certified Cloud Practitioner badge">
+          <i class="fa-brands fa-aws"></i> AWS Cloud Practitioner (Certificate)
         </a>
         <a class="btn external-link" href="./CloudResumeChallenge/CompTIA-Security-plus-Certification.pdf" target="_blank" rel="noreferrer">
-          <img src="./CloudResumeChallenge/comptia-security-ce-certification.png" alt="CompTIA Security+ CE badge">
+          <i class="fa-solid fa-shield"></i> CompTIA Security+ (Certificate)
         </a>
       </div>
       <ul>
-        <li>AWS Certified Cloud Practitioner — Jul 15, 2025</li>
-        <li>CompTIA Security+ (SY0-701) — Jun 17, 2025</li>
+        <li>AWS Certified Cloud Practitioner — Jul 2025</li>
+        <li>CompTIA Security+ (SY0-701) — Jun 2025</li>
       </ul>
     </section>
 
@@ -268,24 +305,47 @@
       </ul>
     </section>
 
+    
     <section id="experience" class="card">
       <h2>Experience</h2>
       <ul>
         <li><strong>Systems Analyst II — ONEGas</strong> (Nov 2021 – Present)<br>
-          Monitor, support, and troubleshoot applications/connectivity across business systems; drive operational readiness with cross‑functional teams; coordinate with vendors to maintain reliability.</li>
+          - Proactively monitor and maintain critical business systems, networks, and applications, reducing unplanned downtime and improving operational reliability.<br>
+          - Troubleshoot and resolve server, network, and application issues in collaboration with local carriers and multi-tier support teams.<br>
+          - Manage user access via <strong>Active Directory</strong> group permissions; process access requests, unlock accounts, and reset passwords in accordance with company policy.<br>
+          - Lead multi-department conference bridges for incident resolution, documenting root causes and remediation steps for knowledge sharing.<br>
+          - Partner with business units to streamline and update processes, improving efficiency and reducing ticket resolution times.<br>
+          - Provide advanced technical support and escalation assistance to the Service Desk to enhance first-contact resolution rates.
+        </li>
         <li><strong>Lead IP/Ethernet NCC Technician — Zayo</strong> (Apr 2016 – Feb 2018)<br>
-          Advanced troubleshooting across national IP/Ethernet networks; configured Juniper/Cisco/ALU gear and DDoS platforms; mentored Tier 1/2 teams to improve MTTR.</li>
+          - Led a team in troubleshooting complex IP and Ethernet circuit issues (E-Line, VPLS, DIA, IP VPN, PDN) across multi-vendor platforms including Juniper, Cisco, Alcatel-Lucent, Ciena, and Nokia.<br>
+          - Directed escalations to Tier III TAC and vendors, ensuring rapid resolution for high-impact customer incidents.<br>
+          - Assisted in mitigating DDoS traffic by implementing firewall policies, route adjustments, and GRE tunneling using RADware DefenseFlow and DefensePro.<br>
+          - Reviewed team troubleshooting efforts, identified skill gaps, and implemented targeted training to improve MTTR and service quality.<br>
+          - Collaborated with management to implement process improvements and corrective actions to enhance operational efficiency.
+        </li>
         <li><strong>IP/Ethernet NCC Technician — Zayo</strong> (Nov 2014 – Apr 2016)<br>
-          Resolved faults across IP VPN, VPLS, E‑Line; performed RFC 2544 testing; tuned BGP policies and DNS; monitored with Netcool/Cacti; direct customer communications.</li>
+          - Diagnosed and resolved faults in IP, IP VPN, VPLS, E-Line, and PDN circuits, prioritizing rapid time-to-resolution for customer-impacting issues.<br>
+          - Performed RFC 2544 throughput testing with field techs and configured NIDs to validate circuit performance.<br>
+          - Updated BGP import policies and DNS zone files (BIND and third-party DNS) to maintain routing accuracy and network stability.<br>
+          - Monitored network health via Netcool, Cacti, and other SNMP-based tools to proactively address potential service degradations.<br>
+          - Provided real-time customer updates, explained troubleshooting steps, and ensured satisfaction upon resolution.<br>
+          - Provisioned and modified circuit configurations for service changes, customer requests, and outage remediation.
+        </li>
         <li><strong>Lead Infrastructure NCC Technician — Zayo</strong> (Dec 2012 – Nov 2014)<br>
-          Led dark-fiber troubleshooting; monitored environmental alerts; platforms: Infinera, Fujitsu, Nortel, Dantel, Cisco, NetGuardian, JDSU, SolarWinds.</li>
+          - Led troubleshooting and repair of dark fiber circuits, meeting strict restoration timelines to minimize customer impact.<br>
+          - Monitored and responded to environmental alarms, ensuring operational continuity across nationwide network locations.<br>
+          - Utilized platforms including Infinera, Fujitsu, Nortel, Dantel, Cisco, NetGuardian, JDSU, and SolarWinds to monitor and maintain infrastructure health.<br>
+          - Assisted team members in resolving escalated issues, providing technical guidance to improve troubleshooting efficiency.
+        </li>
       </ul>
     </section>
+
 
     <section id="education" class="card">
       <h2>Education</h2>
       <ul>
-        <li><strong>B.A. Psychology</strong>, Minor in Philosophy — May 2012</li>
+        <li><strong>Bachelor’s in Psychology</strong>, Minor in Philosophy — May 2012</li>
       </ul>
     </section>
 
