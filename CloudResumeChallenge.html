@@ -80,6 +80,8 @@
     /* Tooltips */
     /* Single tooltip container */
     #tooltip-bubble {
+      opacity: 0; transform: translateY(6px) scale(0.95); transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
       position: fixed;
       max-width: 520px;
       padding: .6rem .75rem;
@@ -93,6 +95,7 @@
       display: none;
       pointer-events: none;
     }
+    #tooltip-bubble.visible{ opacity:1; transform: translateY(0) scale(1); }
 
     .tooltip{ position:relative; cursor:help; border-bottom: 1px dotted var(--accent-2); }
     .tooltip:focus{ outline: 2px dashed var(--accent-2); outline-offset: 2px; border-radius:4px; }
@@ -530,6 +533,7 @@
       document.body.appendChild(bubble);
 
       function showTip(el){
+        bubble.classList.remove('visible');
         const text = el.getAttribute('data-tip') || el.getAttribute('aria-label');
         if(!text) return;
         bubble.textContent = text;
@@ -545,8 +549,14 @@
         top = Math.max(8, top);
         bubble.style.top = top + 'px';
         bubble.style.left = left + 'px';
+        requestAnimationFrame(()=>bubble.classList.add('visible'));
       }
-      function hideTip(){ bubble.style.display = 'none'; }
+      
+      function hideTip(){ 
+        bubble.classList.remove('visible'); 
+        setTimeout(()=>{ bubble.style.display = 'none'; }, 170);
+      }
+
 
       function bind(el){
         el.addEventListener('mouseenter', () => showTip(el));
