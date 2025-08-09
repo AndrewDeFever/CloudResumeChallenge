@@ -76,6 +76,46 @@
     }
     .nav-links a:hover{ color: var(--text); }
 
+    /* Links */
+    /* External link buttons */
+    .external-link, .btn {
+      font-weight: 800;
+      font-size: .95rem;
+      background: var(--accent);
+      filter: brightness(1.05);
+      color: #f0f4f8 !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+    .external-link {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .55rem .85rem;
+      font-size: .9rem;
+      background: var(--accent);
+      filter: brightness(1.05);
+      color: #f0f4f8 !important;
+      border-radius: 999px;
+      font-weight: 700;
+      border: none;
+      box-shadow: var(--shadow);
+      transition: background .2s ease, transform .08s ease;
+    }
+    .external-link:hover, .btn:hover {
+      background: var(--accent-2);
+      color: #f0f4f8 !important;
+    }
+    .external-link:hover { background: var(--accent-2); transform: translateY(-1px); text-decoration:none; }
+    .external-link i { font-size: 1rem; }
+
+    a{ color: var(--accent); text-decoration: none; text-underline-offset: 2px; }
+    a:hover{ text-decoration: underline; }
+    a:visited{ color: var(--accent-2); } /* higher-contrast on dark cards */
+    a:focus-visible{ outline: 2px dashed var(--accent-2); outline-offset: 2px; border-radius: 4px; }
+
+    /* Ensure nav links don't fade when visited */
+    .nav-links a{ color: var(--muted); text-decoration: none; }
+    .nav-links a:visited{ color: var(--muted); }
+    .nav-links a:hover{ color: var(--text); text-decoration: none; }
+
     /* Layout */
     .container{ max-width: var(--maxw); margin: 0 auto; padding: 2rem 1rem; }
     section{ margin: 2rem 0; }
@@ -168,7 +208,7 @@
         <a class="btn" href="mailto:AndrewDeFever@gmail.com"><i class="fa-solid fa-envelope"></i>Email</a>
         <a class="btn" href="https://github.com/AndrewDeFever" target="_blank" rel="noreferrer"><i class="fa-brands fa-github"></i>GitHub</a>
         <a class="btn" href="https://www.linkedin.com/in/andrewdefever/" target="_blank" rel="noreferrer"><i class="fa-brands fa-linkedin"></i>LinkedIn</a>
-        <a class="btn" href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.docx" download><i class="fa-solid fa-file-arrow-down"></i>Resume</a>
+        <a class="btn external-link" href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.docx" download><i class="fa-solid fa-file-arrow-down"></i>Resume</a>
       </div>
     </div>
   </header>
@@ -187,7 +227,7 @@
         <div class="card" style="background:rgba(255,255,255,.04)">
           <p class="meta">Repo & pipelines</p>
           <ul>
-            <li><a href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank" rel="noreferrer">View the GitHub repository</a></li>
+            <div><a class="btn external-link" href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank" rel="noreferrer"><i class="fa-brands fa-github"></i> View GitHub Repo</a></div>
             <li>Least-privilege IAM for CI (OIDC) with CloudFront invalidation</li>
             <li>Lambda packaged with external deps and env vars (no secrets in code)</li>
           </ul>
@@ -198,10 +238,10 @@
     <section id="certs" class="card">
       <h2>Certifications</h2>
       <div class="badges" aria-label="Certification badges">
-        <a href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank" rel="noreferrer">
+        <a class="btn external-link" href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank" rel="noreferrer">
           <img src="./CloudResumeChallenge/aws-certified-cloud-practitioner.png" alt="AWS Certified Cloud Practitioner badge">
         </a>
-        <a href="./CloudResumeChallenge/CompTIA-Security-plus-Certification.pdf" target="_blank" rel="noreferrer">
+        <a class="btn external-link" href="./CloudResumeChallenge/CompTIA-Security-plus-Certification.pdf" target="_blank" rel="noreferrer">
           <img src="./CloudResumeChallenge/comptia-security-ce-certification.png" alt="CompTIA Security+ CE badge">
         </a>
       </div>
