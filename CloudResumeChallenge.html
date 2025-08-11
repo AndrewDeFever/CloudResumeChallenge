@@ -1,85 +1,295 @@
-293
-294
-295
-296
-297
-298
-299
-300
-301
-302
-303
-304
-305
-306
-307
-308
-309
-310
-311
-312
-313
-314
-315
-316
-317
-318
-319
-320
-321
-322
-323
-324
-325
-326
-327
-328
-329
-330
-331
-332
-333
-334
-335
-336
-337
-338
-339
-340
-341
-342
-343
-344
-345
-346
-347
-348
-349
-350
-351
-352
-353
-354
-355
-356
-357
-358
-359
-360
-361
-362
-363
-364
-365
-366
-367
-368
-369
-370
-371
-372
-373
 <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Andrew DeFever | Cloud Resume</title>
+  <meta name="description" content="Cloud Resume Challenge by Andrew DeFever — AWS S3 + CloudFront, API Gateway, Lambda, DynamoDB, and a real-time visitor map." />
+
+  <!-- Preconnects for third-party CDNs -->
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+  <!-- Font: Orbitron -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+
+  <!-- Leaflet & plugins (deferred) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin />
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin></script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script defer src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Font Awesome (icons for Visitor Log) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    :root{
+      --ink:#e9eef6; --link:#9cd3ff; --link-hover:#cfe9ff; --card-bg: rgba(255,255,255,0.06);
+      --card-bd: rgba(255,255,255,0.08); --page-max: 1100px;
+    }
+    html, body{height:100%}
+    body{
+      font-family: Arial, sans-serif; margin:0; color:var(--ink);
+      background:
+        linear-gradient(rgba(5,12,22,.70), rgba(5,12,22,.70)),
+        url('./CloudResumeChallenge/bg-dataflow.webp') center / cover no-repeat;
+      background-attachment: scroll;
+    }
+    .wrap{max-width:var(--page-max); margin:0 auto; padding:2rem 1.25rem;}
+    header{text-align:center}
+    h1, h2{font-family:'Orbitron', sans-serif}
+    h1{font-size:2.5rem;margin:.25rem 0}
+    h2{margin-top:2rem}
+    a{color:var(--link); text-decoration:none}
+    a:hover{color:var(--link-hover); text-decoration:underline}
+    nav, header, .section, #visitor-log, #map{
+      background:var(--card-bg); border:1px solid var(--card-bd);
+      border-radius:12px; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      padding:1rem 1.25rem; margin-bottom:1rem;
+    }
+    nav{ text-align:center; font-weight:700; position:relative }
+    ul{padding-left:1.2rem}
+    .badges img{ height:80px; margin-right:1rem }
+
+    /* Map & legend */
+    #map{ height:500px; position:relative }
+    .legend{ position:absolute; bottom:20px; right:20px; background:white; color:#222; padding:6px 10px; font-size:.9rem; box-shadow:0 0 6px rgba(0,0,0,.3); z-index:1000 }
+    .legend span{ display:inline-block; width:12px; height:12px; margin-right:6px; vertical-align:middle }
+
+    /* Progressive enhancement */
+    .js-hidden{ display:none }
+
+    /* Demo badge (shown when mock data is used) */
+    .demo-badge{ position:absolute; right:10px; top:10px; background:#111; color:#fff; padding:.25rem .5rem; border-radius:.5rem; font-size:.75rem; border:1px solid rgba(255,255,255,.15) }
+
+    /* Skip link */
+    .skip-to-content{ position:absolute; left:-999px; top:auto; width:1px; height:1px; overflow:hidden }
+    .skip-to-content:focus{ position:static; width:auto; height:auto; padding:.5rem; background:#000; color:#fff; border-radius:6px }
+
+    /* Simple entrance animation */
+    @keyframes fadeInUp{ from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)} }
+    .section{ animation: fadeInUp .6s ease-out }
+  </style>
+</head>
+<body>
+  <a class="skip-to-content" href="#about">Skip to content</a>
+
+  <div class="wrap">
+    <nav aria-label="Primary">
+      <span id="demo-badge" class="demo-badge js-hidden" aria-hidden="true">Demo data</span>
+      <a href="#about">About</a> |
+      <a href="#certs">Certifications</a> |
+      <a href="#skills">Skills</a> |
+      <a href="#projects">Projects</a> |
+      <a href="#experience">Experience</a> |
+      <a href="#education">Education</a>
+    </nav>
+
+    <header>
+      <h1>Andrew DeFever</h1>
+      <p>AWS Certified | Cloud Resume Challenge</p>
+      <p>
+        <a href="mailto:AndrewDeFever@gmail.com">AndrewDeFever@gmail.com</a> |
+        <a href="https://github.com/AndrewDeFever" target="_blank" rel="noopener">GitHub</a> |
+        <a href="https://www.linkedin.com/in/andrewdefever/" target="_blank" rel="noopener">LinkedIn</a>
+      </p>
+    </header>
+
+    <section class="section" id="about">
+      <h2>About This Site</h2>
+      <p>This resume site was built as part of the <strong>Cloud Resume Challenge</strong>. It is:</p>
+      <ul>
+        <li>Hosted on Amazon S3 with static website hosting</li>
+        <li>Delivered through CloudFront (CDN)</li>
+        <li>Integrated with API Gateway and Lambda (Python) to log IP address</li>
+        <li>Stores logs in DynamoDB</li>
+      </ul>
+      <p><a href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank" rel="noopener">View the GitHub repository</a></p>
+    </section>
+
+    <section class="section" id="certs">
+      <h2>Certifications</h2>
+      <div class="badges">
+        <a href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank" rel="noopener">
+          <img src="./CloudResumeChallenge/aws-certified-cloud-practitioner.png" alt="AWS Certified Cloud Practitioner badge" loading="lazy" decoding="async" width="160" height="160" />
+        </a>
+        <a href="./CloudResumeChallenge/CompTIA-Security-plus-Certification.pdf" target="_blank" rel="noopener">
+          <img src="./CloudResumeChallenge/comptia-security-ce-certification.png" alt="CompTIA Security+ badge" loading="lazy" decoding="async" width="160" height="160" />
+        </a>
+      </div>
+      <ul>
+        <li>AWS Certified Cloud Practitioner – July 15, 2025</li>
+        <li>CompTIA Security+ (SY0-701) – June 17, 2025</li>
+      </ul>
+    </section>
+
+    <section class="section" id="skills">
+      <h2>Technical Skills</h2>
+      <ul>
+        <li>AWS Services – S3, CloudFront, Route 53, IAM, ACM, TLS, Bucket Policies, DynamoDB, etc.</li>
+        <li>Networking – IP/Ethernet, BGP, MPLS, IPVPN, Eline, VPLS, VLANs, firewall policy management, DNS (BIND)</li>
+        <li>Systems – Linux CLI, system admin, SNMP monitoring, Netcool, Cacti, SolarWinds, Infinera, Cisco IOS/NX-OS, JunOS</li>
+        <li>Security – CompTIA Security+ certified, experience mitigating DDoS via RADware (DefensePro, DefenseFlow), IAM principles, secure traffic routing via GRE tunneling</li>
+      </ul>
+    </section>
+
+    <section class="section" id="projects">
+      <h2>Projects</h2>
+      <ul>
+        <li><strong>Cloud Resume Challenge</strong> – Hosted resume site on S3 with CloudFront, secured via ACM, and built a visitor tracker using API Gateway, Lambda (Python), and DynamoDB. Packaged Lambda with external dependencies via CloudShell and deployed securely using IAM and environment variables.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="experience">
+      <h2>Experience</h2>
+      <ul>
+        <li><strong>Systems Analyst II – OneGas</strong> (11/2021 – Present)<br />
+          - Monitor, support, and troubleshoot applications and connectivity across business systems.<br />
+          - Collaborate with cross-functional teams to support operational readiness.<br />
+          - Coordinate with vendors and stakeholders to ensure system reliability.<br />
+        </li>
+        <li><strong>Lead IP/Ethernet NCC Technician – Zayo</strong> (04/2016 – 02/2018)<br />
+          - Provided advanced troubleshooting for IP and Ethernet circuits across a national network.<br />
+          - Configured and maintained Juniper, Cisco, Alcatel-Lucent routers, firewalls, and DDoS mitigation platforms.<br />
+          - Trained and mentored Tier 1 and Tier 2 technicians, improving resolution times.<br />
+        </li>
+        <li><strong>IP/Ethernet NCC Technician – Zayo</strong> (11/2014 – 04/2016)<br />
+          - Diagnosed and resolved faults across IP, IP VPN, VPLS, E-Line, and PDN circuits, prioritizing rapid time-to-resolution.<br />
+          - Executed RFC 2544 throughput testing with field techs and remote NID configuration to validate circuit performance.<br />
+          - Modified BGP import policies, updated DNS zone files, and monitored network health using Netcool, Cacti, and other SNMP-based tools.<br />
+          - Communicated directly with customers via phone and email to provide real-time updates, explain troubleshooting steps, and ensure issue resolution satisfaction.<br />
+          - Provisioned and modified circuit configurations to support service changes, custom requests, and outage remediation.<br />
+        </li>
+        <li><strong>Lead Infrastructure NCC Technician – Zayo</strong> (12/2012 – 11/2014)<br />
+          - Assisted teammates in troubleshooting and repairing dark fiber circuits within specific time frames.<br />
+          - Monitored and responded to environmental issues in a timely manner to minimize impact to circuits nationwide.<br />
+          - Monitoring platforms (Infinera, Fujitsu, Nortel, Dantel, Cisco, NetGuardian, JDSU, Solarwinds).<br />
+        </li>
+      </ul>
+    </section>
+
+    <section class="section" id="education">
+      <h2>Education</h2>
+      <ul>
+        <li><strong>Bachelor of Psychology</strong>, Minor in Philosophy – May 2012</li>
+      </ul>
+    </section>
+
+    <section class="section cert-download" id="download">
+      <h2>Download Resume</h2>
+      <p><a href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.docx" download>Download as Word Document</a></p>
+    </section>
+
+    <!-- Visits count & map container (hidden until JS data loads) -->
+    <p id="visit-count" class="js-hidden" aria-live="polite">Visits: 0</p>
+    <h2 id="visitor-map-heading" class="js-hidden">Visitor Map</h2>
+    <div id="map" class="js-hidden" aria-labelledby="visitor-map-heading" aria-label="Visitor locations map"></div>
+
+    <!-- Visitor Log -->
+    <section class="section js-hidden" id="visitor-log" aria-live="polite">
+      <h2>Recent Visitors</h2>
+      <ul id="visitor-list"><li>Loading…</li></ul>
+    </section>
+
+    <!-- Test results (only visible with ?test=1) -->
+    <section class="section js-hidden" id="test-results" aria-live="polite"></section>
+  </div>
+
+  <!-- GeoTracker POST (logs visit) -->
+  <script>
+    // Fire-and-forget POST; failures won't block page.
+    try {
+      fetch("https://njx3tbb522.execute-api.us-east-1.amazonaws.com/track", {
+        method: "POST",
+        mode: "no-cors",
+        keepalive: true
+      });
+    } catch (e) {}
+  </script>
+
+  <!-- Main map + clustering + heat + legend script with robust fetch + mock fallback -->
+  <script>
+    // Ensure 2D contexts are created with willReadFrequently to avoid performance warnings
+    (function() {
+      const origGetCtx = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(type, options) {
+        if (type === '2d') return origGetCtx.call(this, '2d', { willReadFrequently: true });
+        return origGetCtx.call(this, type, options);
+      };
+    })();
+
+    // ===== Config =====
+    const API_URL = "https://lkqaj47w3b.execute-api.us-east-1.amazonaws.com/ReadGeoCoords";
+    const FETCH_TIMEOUT_MS = 5000; // fail fast in sandbox
+    const qp = new URLSearchParams(location.search);
+    const TEST_MODE = qp.get('test') === '1';
+
+    // ===== Mock datasets (for fallback + tests) =====
+    const MOCK_TYPICAL = [
+      { city: "Tulsa", region: "OK", country: "US", org: "Cox Communications", lat: 36.154, lng: -95.992, timestamp: "2025-08-10T14:03:22Z" },
+      { city: "Austin", region: "TX", country: "US", org: "Google Fiber", lat: 30.267, lng: -97.743, timestamp: "2025-08-10T13:45:10Z" },
+      { city: "Toronto", region: "ON", country: "CA", org: "Bell Canada", lat: 43.653, lng: -79.383, timestamp: "2025-08-09T22:11:05Z" },
+      { city: "London", region: "ENG", country: "GB", org: "BT", lat: 51.5072, lng: -0.1276, timestamp: "2025-08-08T19:30:00Z" },
+      { city: "Sydney", region: "NSW", country: "AU", org: "Telstra", lat: -33.8688, lng: 151.2093, timestamp: "2025-08-08T05:02:41Z" },
+      { city: "San Francisco", region: "CA", country: "US", org: "Comcast", lat: 37.7749, lng: -122.4194, timestamp: "2025-08-07T16:20:00Z" }
+    ];
+    const MOCK_EMPTY = [];
+    const MOCK_MALFORMED = [ { foo: "bar" }, { city: "Nowhere" } ];
+
+    // ===== Utilities =====
+    function timeout(ms){ return new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)); }
+    async function safeFetchJson(url, opts={}){
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), opts.timeout || FETCH_TIMEOUT_MS);
+      try{
+        const res = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', signal: controller.signal });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const ct = res.headers.get('content-type') || '';
+        if(!ct.includes('application/json')){
+          // Try to parse anyway; if it fails, throw
+          try { return await res.json(); } catch{ throw new Error('Non-JSON response'); }
+        }
+        return await res.json();
+      } finally {
+        clearTimeout(t);
+      }
+    }
+
+    function getFlagEmoji(cc){
+      if(!cc) return '🌐';
+      return [...cc.toUpperCase()].map(c => String.fromCodePoint(127397 + c.charCodeAt())).join('');
+    }
+
+    const ispIconMap = { "Google": "fab fa-google", "Cox": "fas fa-globe-americas" };
+    function getISPIcon(org=''){
+      const match = Object.keys(ispIconMap).find(k => org && org.includes(k));
+      return match ? `<i class="${ispIconMap[match]}"></i>` : '<i class="fas fa-globe"></i>';
+    }
+
+    function normalizeData(arr){
+      if(!Array.isArray(arr)) return [];
+      return arr
+        .map(v => ({
+          city: v.city || 'Unknown',
+          region: v.region || '',
+          country: v.country || '',
+          org: v.org || '',
+          lat: Number(v.lat),
+          lng: Number(v.lng),
+          timestamp: v.timestamp || ''
+        }))
+        .filter(v => Number.isFinite(v.lat) && Number.isFinite(v.lng));
+    }
+
+    function revealDynamic(){
+      document.querySelectorAll('.js-hidden').forEach(el => el.classList.remove('js-hidden'));
+    }
+
+    function renderList(data){
+      const listEl = document.getElementById('visitor-list');
       listEl.innerHTML = '';
       data.slice(0,5).forEach(item => {
         const li = document.createElement('li');
@@ -130,7 +340,8 @@
         renderAll(MOCK_TYPICAL);
         showDemoBadge();
       }
-      if(TEST_MODE){ runTests(); }
+      const qp = new URLSearchParams(location.search);
+      if(qp.get('test') === '1'){ runTests(); }
     }
 
     // ===== Simple test harness (enable with ?test=1) =====
