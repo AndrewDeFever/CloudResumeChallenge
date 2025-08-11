@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
   <!-- Leaflet core CSS/JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 
   <!-- MarkerCluster & Heatmap plugins -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
@@ -50,7 +50,7 @@
         <a class="btn" href="mailto:AndrewDeFever@gmail.com"><i class="fa-solid fa-envelope"></i>Email</a>
         <a class="btn" href="https://github.com/AndrewDeFever" target="_blank" rel="noreferrer"><i class="fa-brands fa-github"></i>GitHub</a>
         <a class="btn" href="https://www.linkedin.com/in/andrewdefever/" target="_blank" rel="noreferrer"><i class="fa-brands fa-linkedin"></i>LinkedIn</a>
-        <a class="btn external-link" href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.pdf" download><i class="fa-solid fa-file-arrow-down"></i>Resume</a>
+        <a class="btn" href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.pdf" download><i class="fa-solid fa-file-arrow-down"></i>Resume</a>
       </div>
     </div>
   </header>
@@ -74,35 +74,35 @@
         <div>
           <h3 class="meta" style="margin:.2rem 0 .4rem;">Frontend & DNS</h3>
           <ul>
-            <li>Static site on <strong>Amazon S3</strong> served globally through <strong>CloudFront</strong> (HTTPS via <strong>ACM</strong>).</li>
-            <li>Public DNS with <strong>Route 53</strong> (apex <em>ALIAS</em> to CloudFront; optional <code>www</code> redirect).</li>
-            <li><strong>S3 Intelligent‑Tiering</strong> for assets and <strong>Server Access Logging</strong> to a dedicated logging bucket.</li>
-            <li>Automatic <strong>CloudFront invalidations</strong> on deploy for zero‑stale rollouts.</li>
+            <li>Static site on <strong><span class="tooltip" data-tip="Object storage hosting the static site.">Amazon S3</span></strong> served globally through <strong><span class="tooltip" data-tip="CDN in front of S3; caching, TLS, and edge delivery.">CloudFront</span></strong> (HTTPS via <strong><span class="tooltip" data-tip="AWS Certificate Manager — provisions and auto‑renews TLS/SSL certificates.">ACM</span></strong>).</li>
+            <li>Public DNS with <strong><span class="tooltip" data-tip="Managed DNS with ALIAS to CloudFront; supports apex without A records.">Route 53</span></strong> (apex <em>ALIAS</em> to CloudFront; optional <code>www</code> redirect).</li>
+            <li><strong><span class="tooltip" data-tip="Automated storage class that lowers S3 costs with no performance impact.">S3 Intelligent‑Tiering</span></strong> for assets and <strong><span class="tooltip" data-tip="Writes server access logs to a dedicated logging bucket for audits.">Server Access Logging</span></strong>.</li>
+            <li>Automatic <strong><span class="tooltip" data-tip="Tell CloudFront to purge cached files so new versions serve immediately.">CloudFront invalidations</span></strong> on deploy for zero‑stale rollouts.</li>
           </ul>
 
           <h3 class="meta" style="margin:.8rem 0 .4rem;">Serverless Backend</h3>
           <ul>
-            <li><strong>API Gateway</strong> → <strong>Lambda (Python)</strong> → <strong>DynamoDB</strong> for visit tracking and geo stats.</li>
-            <li><strong>Usage plans & API keys</strong> for rate limiting; CORS locked to site origin.</li>
-            <li><strong>CloudWatch</strong> Logs & Metrics for observability and troubleshooting.</li>
+            <li><strong><span class="tooltip" data-tip="Managed API front door that handles routing, CORS, auth, and throttling.">API Gateway</span></strong> → <strong><span class="tooltip" data-tip="Serverless compute that runs your visit‑logging code on demand.">Lambda (Python)</span></strong> → <strong><span class="tooltip" data-tip="Managed NoSQL key‑value store for visit records.">DynamoDB</span></strong> for visit tracking and geo stats.</li>
+            <li><strong><span class="tooltip" data-tip="Usage plans and API keys to cap requests per client; protects the backend.">Rate limiting</span></strong> with usage plans & API keys; CORS locked to site origin.</li>
+            <li><strong><span class="tooltip" data-tip="Centralized logs and metrics for debugging and insights.">CloudWatch</span></strong> for observability.</li>
           </ul>
         </div>
 
         <div class="card" style="background:rgba(255,255,255,.04)">
           <h3 class="meta" style="margin:.2rem 0 .4rem;">CI/CD & Security</h3>
           <ul>
-            <li><strong>GitHub Actions</strong> with <strong>OIDC</strong> to assume a deploy role — no long‑lived AWS keys.</li>
-            <li><strong>Least‑privilege IAM</strong>: scoped policies for S3 sync and CloudFront invalidation; HTTPS enforced end‑to‑end.</li>
-            <li>Optional encryption via <strong>KMS (SSE‑KMS)</strong> on logs/artifacts where applicable.</li>
+            <li><strong>GitHub Actions</strong> with <strong><span class="tooltip" data-tip="OpenID Connect: short‑lived credentials so CI can assume an AWS role — no long‑lived keys.">OIDC</span></strong> to assume a deploy role (no stored AWS keys).</li>
+            <li><strong><span class="tooltip" data-tip="Scope roles/policies to the minimum: S3 sync and CloudFront invalidation only.">Least‑privilege IAM</span></strong>; HTTPS enforced end‑to‑end.</li>
+            <li>Optional <strong><span class="tooltip" data-tip="Encrypt logs/artifacts with customer‑managed keys when needed.">KMS (SSE‑KMS)</span></strong> on logs/artifacts.</li>
           </ul>
 
           <h3 class="meta" style="margin:.8rem 0 .4rem;">UI Features</h3>
           <ul>
-            <li>Interactive visitor map using <strong>Leaflet</strong> with marker clustering and heat overlay.</li>
+            <li>Interactive visitor map using <strong>Leaflet</strong> with clustering and heat overlay.</li>
             <li>Recent visitor list with country flags and ISP icons; total visit count.</li>
           </ul>
           <div style="margin-top:.6rem;">
-            <a class="btn external-link" href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank" rel="noreferrer">
+            <a class="btn" href="https://github.com/AndrewDeFever/CloudResumeChallenge" target="_blank" rel="noreferrer">
               <i class="fa-brands fa-github"></i> View GitHub Repo
             </a>
           </div>
@@ -113,10 +113,10 @@
     <section id="certs" class="card">
       <h2>Certifications</h2>
       <div class="badges" aria-label="Certification badges">
-        <a class="btn external-link" href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank" rel="noreferrer">
+        <a class="btn" href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank" rel="noreferrer">
           <i class="fa-brands fa-aws"></i> AWS Cloud Practitioner (Certificate)
         </a>
-        <a class="btn external-link" href="./CloudResumeChallenge/CompTIA-Security-plus-Certification.pdf" target="_blank" rel="noreferrer">
+        <a class="btn" href="./CloudResumeChallenge/CompTIA-Security-plus-Certification.pdf" target="_blank" rel="noreferrer">
           <i class="fa-solid fa-shield"></i> CompTIA Security+ (Certificate)
         </a>
       </div>
@@ -129,7 +129,7 @@
     <section id="skills" class="card">
       <h2>Technical Skills</h2>
       <ul>
-        <li><strong>AWS:</strong> S3 (Static Hosting, Intelligent‑Tiering, Server Access Logging), CloudFront (TLS, invalidations), Route 53, ACM, IAM (least‑privilege + roles for OIDC), API Gateway (usage plans/rate limiting), Lambda, DynamoDB, CloudWatch, KMS (SSE‑KMS), GitHub Actions OIDC</li>
+        <li><strong>AWS:</strong> S3 (Static Hosting, Intelligent‑Tiering, Server Access Logging), CloudFront (TLS, invalidations), Route 53, ACM, IAM (least‑privilege + OIDC roles), API Gateway (usage plans/rate limiting), Lambda, DynamoDB, CloudWatch, KMS (SSE‑KMS), GitHub Actions OIDC</li>
         <li><strong>Networking:</strong> IP/Ethernet, BGP, MPLS, IPVPN, E‑Line, VPLS, VLANs, firewall policy, DNS (BIND)</li>
         <li><strong>Systems:</strong> Linux CLI, sysadmin, SNMP monitoring, Netcool, Cacti, SolarWinds, Infinera, Cisco IOS/NX‑OS, JunOS</li>
         <li><strong>Security:</strong> Security+; DDoS mitigation (RADware), IAM best practices, secure routing via GRE tunneling</li>
@@ -145,7 +145,7 @@
 
     <section id="experience" class="card">
       <h2>Experience</h2>
-      <!-- Keep your experience bullets here (unchanged) -->
+      <!-- keep your experience bullets here -->
     </section>
 
     <section id="education" class="card">
@@ -193,11 +193,6 @@
 
     const API_URL = "https://lkqaj47w3b.execute-api.us-east-1.amazonaws.com/ReadGeoCoords";
 
-    function getFlagEmoji(cc){ if(!cc) return "🌐"; return [...cc.toUpperCase()].map(c=>String.fromCodePoint(127397+c.charCodeAt())).join("") }
-    const ispIconMap = { "Google":"fab fa-google", "Cox":"fas fa-globe-americas" };
-    const getISPIcon = org => (Object.keys(ispIconMap).find(k => (org||"").includes(k)) ? `<i class="${ispIconMap[Object.keys(ispIconMap).find(k => (org||"").includes(k))]}"></i>` : '<i class="fas fa-globe"></i>');
-
-    // Wait until #map has a real size
     const whenMapSized = el => new Promise(res => {
       const ok = () => el.clientWidth > 0 && el.clientHeight > 0;
       if (ok()) return res();
@@ -205,6 +200,10 @@
       ro.observe(el);
       setTimeout(() => { if (ok()) { try{ro.disconnect();}catch{} res(); } }, 800);
     });
+
+    const ispIconMap = { "Google":"fab fa-google", "Cox":"fas fa-globe-americas" };
+    const getISPIcon = org => (Object.keys(ispIconMap).find(k => (org||"").includes(k)) ? `<i class="${ispIconMap[Object.keys(ispIconMap).find(k => (org||"").includes(k))]}"></i>` : '<i class="fas fa-globe"></i>');
+    const getFlagEmoji = cc => cc ? [...cc.toUpperCase()].map(c=>String.fromCodePoint(127397+c.charCodeAt())).join("") : "🌐";
 
     fetch(API_URL).then(r => r.json()).then(async data => {
       if (!Array.isArray(data)) throw new Error("Bad payload");
@@ -237,16 +236,12 @@
       });
 
       map.addLayer(markers);
-
       map.whenReady(() => {
-        try { L.heatLayer(heatData, { radius:25 }).addTo(map); }
-        catch(e){ console.warn("Heat layer skipped:", e); }
+        try { L.heatLayer(heatData, { radius:25 }).addTo(map); } catch(e){ console.warn("Heat layer skipped:", e); }
         setTimeout(() => map.invalidateSize(), 0);
       });
 
-      if (data.length) {
-        map.fitBounds(L.latLngBounds(data.map(d => [d.lat, d.lng])), { padding: [40, 40] });
-      }
+      if (data.length) map.fitBounds(L.latLngBounds(data.map(d => [d.lat, d.lng])), { padding: [40, 40] });
 
       const legend = L.control({ position:'bottomright' });
       legend.onAdd = () => {
@@ -263,7 +258,7 @@
     });
   </script>
 
-  <!-- A11y tooltips (single bubble for all .tooltip elements) -->
+  <!-- Tooltip bubble (single element for all .tooltip) -->
   <script>
     (function(){
       const bubble = Object.assign(document.createElement('div'), { id: 'tooltip-bubble' });
@@ -277,10 +272,10 @@
         bubble.style.display = 'block';
         const rect = el.getBoundingClientRect();
         const padding = 10;
-        const bubbleRect = bubble.getBoundingClientRect();
-        let top = rect.top - bubbleRect.height - padding;
-        let left = rect.left + (rect.width/2) - (bubbleRect.width/2);
-        left = Math.max(8, Math.min(left, window.innerWidth - bubbleRect.width - 8));
+        const b = bubble.getBoundingClientRect();
+        let top = rect.top - b.height - padding;
+        let left = rect.left + (rect.width/2) - (b.width/2);
+        left = Math.max(8, Math.min(left, window.innerWidth - b.width - 8));
         top = Math.max(8, top);
         bubble.style.top = top + 'px';
         bubble.style.left = left + 'px';
