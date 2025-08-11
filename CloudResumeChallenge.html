@@ -74,9 +74,9 @@
         <div>
           <h3 class="meta" style="margin:.2rem 0 .4rem;">Frontend & DNS</h3>
           <ul>
-            <li>Static site on <strong>Amazon S3</strong> served globally through <strong>CloudFront</strong> (<strong class="tooltip" tabindex="0" aria-label="AWS Certificate Manager: provisions and auto‑renews TLS/SSL certs for HTTPS on CloudFront and other services.">ACM</strong> for HTTPS).</li>
+            <li>Static site on <strong>Amazon S3</strong> served globally through <strong>CloudFront</strong> (HTTPS via <strong>ACM</strong>).</li>
             <li>Public DNS with <strong>Route 53</strong> (apex <em>ALIAS</em> to CloudFront; optional <code>www</code> redirect).</li>
-            <li><strong>S3 Intelligent‑Tiering</strong> for assets, and <strong>S3 Server Access Logging</strong> to a dedicated logging bucket.</li>
+            <li><strong>S3 Intelligent‑Tiering</strong> for assets and <strong>Server Access Logging</strong> to a dedicated logging bucket.</li>
             <li>Automatic <strong>CloudFront invalidations</strong> on deploy for zero‑stale rollouts.</li>
           </ul>
 
@@ -91,7 +91,7 @@
         <div class="card" style="background:rgba(255,255,255,.04)">
           <h3 class="meta" style="margin:.2rem 0 .4rem;">CI/CD & Security</h3>
           <ul>
-            <li><strong>GitHub Actions</strong> with <strong class="tooltip" tabindex="0" aria-label="OpenID Connect: short‑lived creds for the deploy role; no long‑lived AWS keys in GitHub.">OIDC</strong> to assume a deploy role — no long‑lived AWS keys.</li>
+            <li><strong>GitHub Actions</strong> with <strong>OIDC</strong> to assume a deploy role — no long‑lived AWS keys.</li>
             <li><strong>Least‑privilege IAM</strong>: scoped policies for S3 sync and CloudFront invalidation; HTTPS enforced end‑to‑end.</li>
             <li>Optional encryption via <strong>KMS (SSE‑KMS)</strong> on logs/artifacts where applicable.</li>
           </ul>
@@ -129,7 +129,7 @@
     <section id="skills" class="card">
       <h2>Technical Skills</h2>
       <ul>
-        <li><strong>AWS:</strong> S3 (Static Hosting, Intelligent‑Tiering, Server Access Logging), CloudFront (TLS, invalidations), Route 53, ACM, IAM (least‑privilege + roles for OIDC), API Gateway (usage plans/rate limiting), Lambda, DynamoDB, CloudWatch, KMS (SSE‑KMS), plus CI/CD via GitHub Actions OIDC</li>
+        <li><strong>AWS:</strong> S3 (Static Hosting, Intelligent‑Tiering, Server Access Logging), CloudFront (TLS, invalidations), Route 53, ACM, IAM (least‑privilege + roles for OIDC), API Gateway (usage plans/rate limiting), Lambda, DynamoDB, CloudWatch, KMS (SSE‑KMS), GitHub Actions OIDC</li>
         <li><strong>Networking:</strong> IP/Ethernet, BGP, MPLS, IPVPN, E‑Line, VPLS, VLANs, firewall policy, DNS (BIND)</li>
         <li><strong>Systems:</strong> Linux CLI, sysadmin, SNMP monitoring, Netcool, Cacti, SolarWinds, Infinera, Cisco IOS/NX‑OS, JunOS</li>
         <li><strong>Security:</strong> Security+; DDoS mitigation (RADware), IAM best practices, secure routing via GRE tunneling</li>
@@ -145,8 +145,7 @@
 
     <section id="experience" class="card">
       <h2>Experience</h2>
-      <!-- (unchanged content from your current page) -->
-      <!-- Keep your experience bullets here -->
+      <!-- Keep your experience bullets here (unchanged) -->
     </section>
 
     <section id="education" class="card">
@@ -181,8 +180,9 @@
     document.getElementById('y').textContent = new Date().getFullYear();
   </script>
 
-  <!-- Map + clustering + heat + legend -->
+  <!-- Map + clustering + heat + legend (with sizing fix) -->
   <script>
+    // Canvas2D tweak for some browsers
     (function() {
       const orig = HTMLCanvasElement.prototype.getContext;
       HTMLCanvasElement.prototype.getContext = function(type, opts) {
@@ -193,68 +193,74 @@
 
     const API_URL = "https://lkqaj47w3b.execute-api.us-east-1.amazonaws.com/ReadGeoCoords";
 
-    function getFlagEmoji(cc) {
-      if (!cc) return "🌐";
-      return [...cc.toUpperCase()].map(c => String.fromCodePoint(127397 + c.charCodeAt())).join("");
-    }
+    function getFlagEmoji(cc){ if(!cc) return "🌐"; return [...cc.toUpperCase()].map(c=>String.fromCodePoint(127397+c.charCodeAt())).join("") }
+    const ispIconMap = { "Google":"fab fa-google", "Cox":"fas fa-globe-americas" };
+    const getISPIcon = org => (Object.keys(ispIconMap).find(k => (org||"").includes(k)) ? `<i class="${ispIconMap[Object.keys(ispIconMap).find(k => (org||"").includes(k))]}"></i>` : '<i class="fas fa-globe"></i>');
 
-    const ispIconMap = { "Google": "fab fa-google", "Cox": "fas fa-globe-americas" };
-    function getISPIcon(org = "") {
-      const m = Object.keys(ispIconMap).find(k => org.includes(k));
-      return m ? `<i class="${ispIconMap[m]}"></i>` : '<i class="fas fa-globe"></i>';
-    }
+    // Wait until #map has a real size
+    const whenMapSized = el => new Promise(res => {
+      const ok = () => el.clientWidth > 0 && el.clientHeight > 0;
+      if (ok()) return res();
+      const ro = new ResizeObserver(() => { if (ok()) { ro.disconnect(); res(); } });
+      ro.observe(el);
+      setTimeout(() => { if (ok()) { try{ro.disconnect();}catch{} res(); } }, 800);
+    });
 
-    fetch(API_URL)
-      .then(r => r.json())
-      .then(data => {
-        if (!Array.isArray(data)) {
-          console.error("Expected array, got:", data);
-          document.getElementById("visit-count").textContent = "Visits: unavailable";
-          return;
-        }
+    fetch(API_URL).then(r => r.json()).then(async data => {
+      if (!Array.isArray(data)) throw new Error("Bad payload");
 
-        document.getElementById("visit-count").textContent = `Visits: ${data.length}`;
-        data.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+      document.getElementById("visit-count").textContent = `Visits: ${data.length}`;
+      data.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        const listEl = document.getElementById("visitor-list");
-        listEl.innerHTML = "";
-        data.slice(0, 6).forEach(item => {
-          const li = document.createElement("li");
-          li.innerHTML = `${getFlagEmoji(item.country)} <strong>${item.city}, ${item.region}</strong> — ${getISPIcon(item.org)} <em>${item.org}</em>`;
-          listEl.appendChild(li);
-        });
-
-        const map = L.map("map").setView([20, 0], 2);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-          attribution: "© CARTO & © OpenStreetMap contributors",
-          maxZoom: 18
-        }).addTo(map);
-
-        const markers = L.markerClusterGroup();
-        const heatData = [];
-        data.forEach(v => {
-          const latlng = [v.lat, v.lng];
-          markers.addLayer(L.marker(latlng).bindPopup(`<strong>${v.city}</strong><br>${v.org}<br>${v.timestamp}`));
-          heatData.push([...latlng, .5]);
-        });
-        map.addLayer(markers);
-        L.heatLayer(heatData, { radius: 25 }).addTo(map);
-        map.fitBounds(L.latLngBounds(data.map(d => [d.lat, d.lng])), { padding: [40, 40] });
-
-        const legend = L.control({ position: 'bottomright' });
-        legend.onAdd = () => {
-          const div = L.DomUtil.create('div', 'legend');
-          div.innerHTML = `<strong>Legend</strong><br>
-            <span style="background:#3388ff;border-radius:50%;"></span> Visitors<br>
-            <span style="background:rgba(255,0,0,0.5);"></span> Heat intensity`;
-          return div;
-        };
-        legend.addTo(map);
-      })
-      .catch(err => {
-        console.error("ReadGeoCoords error:", err);
-        document.getElementById("visit-count").textContent = "Visits: unavailable";
+      const listEl = document.getElementById("visitor-list");
+      listEl.innerHTML = "";
+      data.slice(0,6).forEach(v => {
+        const li = document.createElement("li");
+        li.innerHTML = `${getFlagEmoji(v.country)} <strong>${v.city}, ${v.region}</strong> — ${getISPIcon(v.org)} <em>${v.org}</em>`;
+        listEl.appendChild(li);
       });
+
+      const mapEl = document.getElementById("map");
+      await whenMapSized(mapEl);
+
+      const map = L.map(mapEl, { preferCanvas:true }).setView([20,0], 2);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: "© CARTO & © OpenStreetMap contributors", maxZoom: 18
+      }).addTo(map);
+
+      const markers = L.markerClusterGroup();
+      const heatData = [];
+      data.forEach(v => {
+        const latlng = [v.lat, v.lng];
+        markers.addLayer(L.marker(latlng).bindPopup(`<strong>${v.city}</strong><br>${v.org}<br>${v.timestamp}`));
+        heatData.push([...latlng, 0.5]);
+      });
+
+      map.addLayer(markers);
+
+      map.whenReady(() => {
+        try { L.heatLayer(heatData, { radius:25 }).addTo(map); }
+        catch(e){ console.warn("Heat layer skipped:", e); }
+        setTimeout(() => map.invalidateSize(), 0);
+      });
+
+      if (data.length) {
+        map.fitBounds(L.latLngBounds(data.map(d => [d.lat, d.lng])), { padding: [40, 40] });
+      }
+
+      const legend = L.control({ position:'bottomright' });
+      legend.onAdd = () => {
+        const div = L.DomUtil.create('div','legend');
+        div.innerHTML = `<strong>Legend</strong><br>
+          <span style="background:#3388ff;border-radius:50%;"></span> Visitors<br>
+          <span style="background:rgba(255,0,0,0.5);"></span> Heat intensity`;
+        return div;
+      };
+      legend.addTo(map);
+    }).catch(err => {
+      console.error("ReadGeoCoords error:", err);
+      document.getElementById("visit-count").textContent = "Visits: unavailable";
+    });
   </script>
 
   <!-- A11y tooltips (single bubble for all .tooltip elements) -->
