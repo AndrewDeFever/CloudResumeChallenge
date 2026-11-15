@@ -51,7 +51,7 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-LambdaDeploy
+          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-CloudResume-FrontendDeploy
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Validate production distribution and required existing assets
