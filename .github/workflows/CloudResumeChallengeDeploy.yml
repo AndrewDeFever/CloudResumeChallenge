@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'CloudResumeChallenge.html'
+      - 'styles.css'
       - 'vendor/**'
       - '.github/workflows/CloudResumeChallengeDeploy.yml'
   workflow_dispatch:
@@ -35,6 +36,7 @@ jobs:
         run: |
           set -euo pipefail
           test -s CloudResumeChallenge.html
+          test -s styles.css
           test -s vendor/leaflet/leaflet.js
           test -s vendor/leaflet/leaflet.css
           test -s vendor/leaflet/leaflet-assets.js
@@ -69,9 +71,9 @@ jobs:
             --output text)
           test "$origin" = "$RESUME_BUCKET.s3.us-east-1.amazonaws.com"
           test "$root" = "index.html"
-          # styles.css and the supporting image/download assets are currently
-          # production-only, not tracked in this repo. Preserve them.
-          for key in styles.css architecture.svg background.png favicon.ico; do
+          # Supporting image/download assets are still production-only.
+          # Check they exist; this deployment never deletes them.
+          for key in architecture.svg background.png favicon.ico; do
             aws s3api head-object --bucket "$RESUME_BUCKET" --key "$key" > /dev/null
           done
 
@@ -96,6 +98,9 @@ jobs:
           aws s3 cp CloudResumeChallenge.html "s3://$RESUME_BUCKET/index.html" \
             --content-type 'text/html; charset=utf-8' \
             --cache-control 'public,max-age=300'
+          aws s3 cp styles.css "s3://$RESUME_BUCKET/styles.css" \
+            --content-type 'text/css; charset=utf-8' \
+            --cache-control 'public,max-age=300'
           aws s3 sync vendor/ "s3://$RESUME_BUCKET/vendor/" \
             --cache-control 'public,max-age=3600' \
             --exclude '*.map'
@@ -106,4 +111,4 @@ jobs:
           set -euo pipefail
           aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-            --paths '/' '/index.html' '/vendor/*'
+            --paths '/' '/index.html' '/styles.css' '/vendor/*'
