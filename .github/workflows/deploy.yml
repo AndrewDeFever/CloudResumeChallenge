@@ -27,7 +27,7 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-LambdaDeploy
+          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-CloudResume-LambdaDeploy
           aws-region: us-east-1
 
       - name: Install dependencies
