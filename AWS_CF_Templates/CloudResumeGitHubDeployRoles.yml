@@ -24,10 +24,10 @@ Parameters:
     Default: E11F2W61OQF97D
 
 Resources:
-  FrontendDeployRole:
+  CRCFrontendDeployRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: GitHubOIDC-CloudResume-FrontendDeploy
+      RoleName: GitHubOIDC-CRC-Frontend
       Description: GitHub main-branch role limited to the Cloud Resume static frontend.
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -73,10 +73,10 @@ Resources:
                   - cloudfront:CreateInvalidation
                 Resource: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${ResumeDistributionId}'
 
-  LambdaDeployRole:
+  CRCBackendDeployRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: GitHubOIDC-CloudResume-LambdaDeploy
+      RoleName: GitHubOIDC-CRC-Backend
       Description: GitHub main-branch role limited to Cloud Resume Lambda code deployments.
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -106,8 +106,8 @@ Resources:
 
 Outputs:
   FrontendRoleArn:
-    Value: !GetAtt FrontendDeployRole.Arn
+    Value: !GetAtt CRCFrontendDeployRole.Arn
     Description: Use in CloudResumeChallengeDeploy.yml after this stack reaches CREATE_COMPLETE.
   LambdaRoleArn:
-    Value: !GetAtt LambdaDeployRole.Arn
+    Value: !GetAtt CRCBackendDeployRole.Arn
     Description: Use in deploy.yml after this stack reaches CREATE_COMPLETE.
