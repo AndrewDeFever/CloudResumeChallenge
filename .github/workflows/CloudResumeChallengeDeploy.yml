@@ -46,5 +46,5 @@ jobs:
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id E3QFBB3COE2N4Y \
+            --distribution-id E1IF2W61OQF97D \
             --paths "/" "/CloudResumeChallenge.html" "/vendor/*"
