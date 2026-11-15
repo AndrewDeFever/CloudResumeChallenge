@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'GeoTracker.py'
+      - 'ReadGeoCoords.py'
+      - 'requirements.txt'
+      - 'tests/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
 
 permissions:
   id-token: write
