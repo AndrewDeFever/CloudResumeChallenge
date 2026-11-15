@@ -1,0 +1,188 @@
+/* ===== Theme variables ===== */
+:root{
+  --bg:#071f2a;
+  --card-bg:rgba(8,28,40,0.6);
+  --card-bg-soft:rgba(255,255,255,.03);
+  --card-border:rgba(255,255,255,0.12);
+
+  /* Softer, easier-on-eyes palette */
+  --text:#d4e2ec;
+  --muted:#aab9c4;
+  --accent:#3da6f0;
+  --accent-2:#7fd2f6;
+
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --radius:18px;
+  --maxw:1100px;
+}
+
+/* ===== Base ===== */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
+  color:var(--text);
+  background: var(--bg) url('background.png') center/cover no-repeat fixed;
+  min-height:100dvh;
+}
+/* readability overlay */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(71,179,255,.22), transparent 60%),
+    linear-gradient(to bottom, rgba(4,11,16,.75), rgba(4,11,16,.35) 25%, rgba(4,11,16,.85));
+}
+
+/* ===== A11y: skip link ===== */
+.skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+.skip:focus{left:1rem;top:1rem;width:auto;height:auto;background:#000;color:#fff;padding:.5rem .75rem;border-radius:.5rem}
+
+/* ===== Top nav ===== */
+nav{
+  position:sticky; top:0; z-index:20;
+  backdrop-filter:saturate(140%) blur(8px);
+  background:rgba(5,18,26,.65);
+  border-bottom:1px solid var(--card-border);
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:var(--maxw);margin:0 auto;padding:.8rem 1rem}
+.brand{display:flex;gap:.6rem;align-items:center;font-weight:800;letter-spacing:.3px}
+.brand i{font-size:1.2rem;color:var(--accent-2)}
+.brand span{font-family:Orbitron,sans-serif}
+.nav-links a{color:var(--muted);text-decoration:none;margin-left:1rem;font-weight:600;font-size:.95rem}
+.nav-links a:hover{color:var(--text)}
+.nav-links a:visited{color:var(--muted)} /* keep visited from dimming differently */
+
+/* ===== Buttons (unified rounded pills) ===== */
+.btn, .external-link{
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.7rem 1rem;
+  border-radius:999px;
+  font-weight:700; font-size:.95rem;
+  text-decoration:none; border:none;
+  background:var(--accent);
+  color:#f0f4f8 !important;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+  box-shadow:var(--shadow);
+  transition:transform .08s ease, background .2s ease;
+}
+.btn:hover, .external-link:hover{
+  background:var(--accent-2);
+  transform:translateY(-1px);
+  text-decoration:none;
+}
+.btn i, .external-link i{opacity:.9}
+
+/* ===== Links ===== */
+a{color:var(--accent);text-decoration:none;text-underline-offset:2px}
+a:hover{text-decoration:underline}
+a:visited{color:var(--accent-2)}
+a:focus-visible{outline:2px dashed var(--accent-2);outline-offset:2px;border-radius:4px}
+
+/* ===== Layout & Section Cards (uniform) ===== */
+.container{max-width:var(--maxw);margin:0 auto;padding:2rem 1rem}
+section{margin:2rem 0}
+
+/* top-level section card */
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:0;                                 /* unified: header + body */
+  overflow:hidden;                           /* keep rounded corners tidy */
+}
+
+/* uniform section header bar */
+.card > h2{
+  margin:0;
+  padding:14px 18px;
+  font-family:Orbitron,sans-serif;
+  font-weight:600;
+  font-size:1.35rem;
+  letter-spacing:.2px;
+  border-bottom:1px solid var(--card-border);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+}
+
+/* section body padding (no HTML changes needed) */
+.card > :not(h2){ padding:16px 18px }
+
+/* grids inside cards */
+.grid{display:grid;gap:1rem}
+@media (min-width:900px){
+  .grid-2{grid-template-columns:1.1fr .9fr}
+  .grid-3{grid-template-columns:repeat(3,1fr)}
+}
+
+/* ===== Hero (not a card) ===== */
+.hero{padding:3.5rem 1rem 2rem;text-align:center}
+.hero .title{
+  font-family:Orbitron,sans-serif;
+  font-weight:600;
+  font-size:clamp(2rem,4vw + .5rem,3.2rem);
+  margin:0 0 .4rem; letter-spacing:.6px;
+  text-shadow:0 6px 28px rgba(0,0,0,.45);
+}
+.hero .tag{color:var(--muted);margin:0 0 1.2rem;font-size:1.05rem}
+.cta{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap}
+
+/* ===== Type ===== */
+ul{margin:0;padding-left:1.1rem}
+li{margin:.35rem 0;line-height:1.55}
+.meta{color:var(--muted);font-size:.95rem}
+
+/* ===== Tooltips (bubble is positioned by JS) ===== */
+#tooltip-bubble{
+  opacity:0; transform:translateY(6px) scale(.95);
+  transition:opacity .5s ease, transform .5s ease;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  position:fixed; max-width:520px; padding:.6rem .75rem;
+  font-size:1rem; line-height:1.5;
+  background:rgba(0,0,0,.85); color:#e6f3ff;
+  border-radius:10px; box-shadow:var(--shadow);
+  z-index:2000; display:none; pointer-events:none;
+}
+#tooltip-bubble.visible{opacity:1; transform:translateY(0) scale(1)}
+.tooltip{position:relative; cursor:help; border-bottom:1px dotted var(--accent)}
+.tooltip:focus{outline:2px dashed var(--accent-2); outline-offset:2px; border-radius:4px}
+
+/* ===== Map & legend ===== */
+#map{height:460px;border-radius:12px;border:1px solid var(--card-border);overflow:hidden}
+.legend{
+  position:absolute; bottom:16px; right:16px;
+  background:rgba(0,0,0,.65); color:#fff;
+  padding:.5rem .7rem; font-size:.85rem;
+  border-radius:.5rem; box-shadow:var(--shadow);
+}
+.legend span{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:middle}
+
+/* ===== Footer ===== */
+footer{color:var(--muted);text-align:center;padding:2rem 1rem 3rem;font-size:.9rem}
+.divider{height:1px;background:var(--card-border);margin:2rem 0}
+
+/* ===== Experience (normalize to match other sections) ===== */
+#experience ul{list-style:disc;padding-left:1.1rem;margin:0 0 0 1rem}
+#experience li{
+  /* no inner panels so it matches Projects style */
+  background:transparent;
+  border:none;
+  padding:.2rem 0;
+}
+#experience li + li{margin-top:.35rem}
+
+/* Keep the first strong (job title/company) inline with the dates */
+#experience li > strong:first-of-type{
+  display:inline;
+  font-weight:800;
+  letter-spacing:.2px;
+  margin-right:.25rem; /* small gap before (dates) */
+}
+/* Do NOT alter other <strong> (e.g., "Active Directory") */
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation:none !important;transition:none !important}
+}
