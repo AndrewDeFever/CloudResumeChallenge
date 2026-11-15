@@ -23,11 +23,28 @@ jobs:
           role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-LambdaDeploy
           aws-region: us-east-1
 
+      - name: Verify vendored map assets
+        run: |
+          test -s vendor/leaflet/leaflet.js
+          test -s vendor/leaflet/leaflet.css
+          test -s vendor/leaflet/leaflet-assets.js
+          test -s vendor/leaflet-markercluster/leaflet.markercluster.js
+          test -s vendor/leaflet-markercluster/MarkerCluster.css
+          test -s vendor/leaflet-markercluster/MarkerCluster.Default.css
+          test -s vendor/leaflet-heat/leaflet-heat.js
+
       - name: Publish CloudResumeChallenge.html to S3
         run: |
           aws s3 cp CloudResumeChallenge.html s3://subrealstudios.com/CloudResumeChallenge.html
+
+      - name: Publish self-hosted map dependencies to S3
+        run: |
+          aws s3 sync vendor/ s3://subrealstudios.com/vendor/ \
+            --cache-control "public,max-age=3600" \
+            --exclude "*.map"
+
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id E3QFBB3COE2N4Y \
-            --paths "/CloudResumeChallenge.html"
+            --paths "/CloudResumeChallenge.html" "/vendor/*"
