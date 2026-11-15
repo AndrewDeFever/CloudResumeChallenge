@@ -254,8 +254,10 @@
       await whenMapSized(mapEl);
 
       const map = L.map(mapEl, { preferCanvas:true }).setView([20,0], 2);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        attribution: "© CARTO & © OpenStreetMap contributors", maxZoom: 18
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+        referrerPolicy: "strict-origin-when-cross-origin"
       }).addTo(map);
 
       const markers = L.markerClusterGroup();
