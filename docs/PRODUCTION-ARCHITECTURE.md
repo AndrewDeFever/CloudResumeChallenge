@@ -30,21 +30,21 @@ The S3 origin is `resume.subrealstudios.com.s3.us-east-1.amazonaws.com`. No orig
 
 ## Deployment procedure
 
-The GitHub Actions workflow `.github/workflows/CloudResumeChallengeDeploy.yml` uses GitHub OIDC to assume `arn:aws:iam::042889969210:role/GitHubOIDC-LambdaDeploy`.
+The frontend GitHub Actions workflow `.github/workflows/CloudResumeChallengeDeploy.yml` assumes `arn:aws:iam::042889969210:role/GitHubOIDC-CRC-Frontend`. The backend workflow assumes `arn:aws:iam::042889969210:role/GitHubOIDC-CRC-Backend`. Both roles are managed by `AWS_CF_Templates/CloudResumeGitHubDeployRoles.yml` and exist in stack `CloudResume-GitHubDeployRoles`.
 
 1. Check the HTML has the Esri tile URL and all required vendored JS/CSS assets are present.
 2. Authenticate to AWS via GitHub OIDC.
 3. Validate the CloudFront distribution's origin and default root document; check existing production-only CSS/assets are present.
 4. Download the existing `index.html` and store it as a 30-day GitHub Actions artifact for rollback.
-5. Publish `CloudResumeChallenge.html` to the production bucket as `index.html`, sync the vendored map libraries, and invalidate `/`, `/index.html` and `/vendor/*`.
+5. Publish `CloudResumeChallenge.html` to the production bucket as `index.html`, publish tracked `styles.css`, sync the vendored map libraries, and invalidate `/`, `/index.html`, `/styles.css` and `/vendor/*`.
 
 The workflow is automatic for scoped frontend changes on `main`, with a manual `workflow_dispatch` option. Lambda deployment is separately scoped to backend source/tests.
 
-**Permission prerequisites (not yet confirmed for the OIDC role):** S3 write permissions in `resume.subrealstudios.com`; S3 read of the existing HTML and required assets; `cloudfront:GetDistribution` and `cloudfront:CreateInvalidation` for `E11F2W61OQF97D`. A workflow failure here is not evidence the frontend source is defective. Grant narrowly scoped IAM permissions after reviewing the actual failure and role policy.
+**IAM status (2026-11-15):** New roles were created with CloudFormation and their identity-policy simulations passed for the relevant CloudFront, S3, and Lambda actions. Publishing tracked `styles.css` additionally requires the updated CloudFormation policy from the current PR; **apply the stack update before merging**. Simulation does not replace a live GitHub OIDC workflow test.
 
 ## Repository and production gaps to close
 
-- `styles.css` is not yet tracked at repository root (confirmed by GitHub file lookup), but does exist in the production bucket. The workflow **preserves** it; do not use a broad `aws s3 sync --delete` of the bucket. Import and review the stylesheet separately before making GitHub a complete static-site source of truth.
+- `styles.css` was imported from production and is now tracked at the repository root. The workflow publishes it explicitly. Other assets are still production-only; do not use a broad `aws s3 sync --delete` of the bucket. Before merging, inspect differences between production `index.html` and source `CloudResumeChallenge.html`.
 - Other existing objects include `architecture.svg`, `background.png`, `favicon.ico`, `geolocation.py`, and `CloudResumeChallenge/` resume/cert files. None are deleted by the deploy workflow. Inspect `geolocation.py` before deciding whether it should be exposed via the web.
 - HTML references two API Gateway endpoints: `https://njx3tbb522.execute-api.us-east-1.amazonaws.com/track` and `https://lkqaj47w3b.execute-api.us-east-1.amazonaws.com/ReadGeoCoords`. GitHub deploys Lambda functions `GeoTracker` and `ReadGeoCoords`. Verify active API integration/permissions from AWS; don't infer them from filenames.
 - Older CloudFormation notes mention `GeoVisitors` versus `GeoVisitorsByDay`; inspect live DynamoDB, IAM and Lambda settings before applying any infrastructure changes.
