@@ -47,4 +47,4 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id E3QFBB3COE2N4Y \
-            --paths "/CloudResumeChallenge.html" "/vendor/*"
+            --paths "/" "/CloudResumeChallenge.html" "/vendor/*"
