@@ -8,13 +8,15 @@ A serverless web resume hosted on AWS using S3, CloudFront, and Route 53, with a
 .
 ├── .github/workflows/
 │   ├── deploy.yml
-│   └── requirements.txt
+│   └── CloudResumeChallengeDeploy.yml
 ├── AWS_CF_Templates/
 │   └── GeoTrackerLambdaStack.yml
 ├── tests/
 │   ├── __init__.py
 │   └── test_geo.py
 ├── CloudResumeChallenge.html
+├── vendor/                  # Vendored mapping dependencies
+├── docs/PRODUCTION-ARCHITECTURE.md
 ├── GeoTracker.py
 ├── lambda_geoip.zip
 ├── LICENSE
@@ -29,12 +31,12 @@ A serverless web resume hosted on AWS using S3, CloudFront, and Route 53, with a
 | Static Hosting         | S3, CloudFront, Route 53                      |
 | HTTPS                  | ACM + CloudFront                              |
 | Visitor Logging        | Lambda (`GeoTracker.py`) + DynamoDB          |
-| Visitor Stats API      | Lambda (`ReadGeoStats`) + API Gateway        |
+| Visitor Stats API      | Lambda (`ReadGeoCoords`) + API Gateway        |
 | Frontend Integration   | JavaScript + Flag/ISP Icons (Font Awesome)   |
 | Infrastructure as Code | CloudFormation (YAML)                         |
 | CI/CD                  | GitHub Actions with OIDC                      |
 | IAM Security           | Scoped Lambda execution roles                |
-| Python Version         | 3.13                                          |
+| Python Version         | Verify deployed runtime in AWS (IaC source uses 3.12)                                          |
 | Testing                | Pytest (`tests/test_geo.py`)                 |
 
 ---
@@ -59,13 +61,15 @@ A serverless web resume hosted on AWS using S3, CloudFront, and Route 53, with a
 
 ## 🌐 Live Demo
 
-🔗 [https://www.subrealstudios.com/CloudResumeChallenge.html](https://www.subrealstudios.com/CloudResumeChallenge.html)
+🔗 [https://resume.subrealstudios.com/](https://resume.subrealstudios.com/)
+
+Production serves **CloudFront E11F2W61OQF97D** → **S3 bucket `resume.subrealstudios.com`** → **`index.html`**. GitHub's `CloudResumeChallenge.html` is published as `index.html`. See [Production architecture and deployment](docs/PRODUCTION-ARCHITECTURE.md) for the verified origin, deploy workflow, asset gaps, IAM prerequisites, and rollback.
 
 ---
 
 ## 🔭 Future Enhancements
 
-- [x] Add `ReadGeoStats` Lambda to fetch and expose visitor data via API Gateway
+- [x] Add `ReadGeoCoords` Lambda to fetch and expose visitor data via API Gateway
 - [x] Implement frontend integration with dynamic flags and ISP icons
 - [x] Secure CI/CD using GitHub Actions with OpenID Connect (OIDC) authentication
 - [x] Deduplicate or group visits by IP (e.g., daily unique count)

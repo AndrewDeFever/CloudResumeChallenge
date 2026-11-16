@@ -1,30 +1,42 @@
-name: Publish CloudResumeChallenge
+name: Publish Cloud Resume
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'CloudResumeChallenge.html'
+      - 'styles.css'
+      - 'vendor/**'
+      - '.github/workflows/CloudResumeChallengeDeploy.yml'
+  workflow_dispatch:
 
 permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: production-cloud-resume
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  RESUME_BUCKET: resume.subrealstudios.com
+  CLOUDFRONT_DISTRIBUTION_ID: E11F2W61OQF97D
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Configure AWS creds via OIDC
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-LambdaDeploy
-          aws-region: us-east-1
-
-      - name: Verify vendored map assets
+      - name: Verify frontend inputs
+        shell: bash
         run: |
+          set -euo pipefail
+          test -s CloudResumeChallenge.html
+          test -s styles.css
           test -s vendor/leaflet/leaflet.js
           test -s vendor/leaflet/leaflet.css
           test -s vendor/leaflet/leaflet-assets.js
@@ -32,19 +44,71 @@ jobs:
           test -s vendor/leaflet-markercluster/MarkerCluster.css
           test -s vendor/leaflet-markercluster/MarkerCluster.Default.css
           test -s vendor/leaflet-heat/leaflet-heat.js
+          grep -Fq 'server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base' CloudResumeChallenge.html
+          if grep -Eq 'basemaps\.cartocdn\.com' CloudResumeChallenge.html; then
+            echo 'Refusing to deploy HTML referencing the retired CARTO map URL.' >&2
+            exit 1
+          fi
 
-      - name: Publish CloudResumeChallenge.html to S3
-        run: |
-          aws s3 cp CloudResumeChallenge.html s3://subrealstudios.com/CloudResumeChallenge.html
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-CRC-Frontend
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Publish self-hosted map dependencies to S3
+      - name: Validate production distribution and required existing assets
+        shell: bash
         run: |
-          aws s3 sync vendor/ s3://subrealstudios.com/vendor/ \
-            --cache-control "public,max-age=3600" \
-            --exclude "*.map"
+          set -euo pipefail
+          # Fail closed if the deployment points at a different CloudFront origin.
+          origin=$(aws cloudfront get-distribution \
+            --id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --query 'Distribution.DistributionConfig.Origins.Items[0].DomainName' \
+            --output text)
+          root=$(aws cloudfront get-distribution \
+            --id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --query 'Distribution.DistributionConfig.DefaultRootObject' \
+            --output text)
+          test "$origin" = "$RESUME_BUCKET.s3.us-east-1.amazonaws.com"
+          test "$root" = "index.html"
+          # Supporting image/download assets are still production-only.
+          # Check they exist; this deployment never deletes them.
+          for key in architecture.svg background.png favicon.ico; do
+            aws s3api head-object --bucket "$RESUME_BUCKET" --key "$key" > /dev/null
+          done
 
-      - name: Invalidate CloudFront Cache
+      - name: Back up current production HTML
+        shell: bash
         run: |
+          set -euo pipefail
+          aws s3 cp "s3://$RESUME_BUCKET/index.html" "$RUNNER_TEMP/previous-index.html"
+          test -s "$RUNNER_TEMP/previous-index.html"
+
+      - name: Store rollback copy as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: previous-production-index-${{ github.run_id }}
+          path: ${{ runner.temp }}/previous-index.html
+          retention-days: 30
+
+      - name: Publish frontend and map dependencies to the resume origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws s3 cp CloudResumeChallenge.html "s3://$RESUME_BUCKET/index.html" \
+            --content-type 'text/html; charset=utf-8' \
+            --cache-control 'public,max-age=300'
+          aws s3 cp styles.css "s3://$RESUME_BUCKET/styles.css" \
+            --content-type 'text/css; charset=utf-8' \
+            --cache-control 'public,max-age=300'
+          aws s3 sync vendor/ "s3://$RESUME_BUCKET/vendor/" \
+            --cache-control 'public,max-age=3600' \
+            --exclude '*.map'
+
+      - name: Invalidate production CloudFront cache
+        shell: bash
+        run: |
+          set -euo pipefail
           aws cloudfront create-invalidation \
-            --distribution-id E11F2W61OQF97D \
-            --paths "/" "/CloudResumeChallenge.html" "/vendor/*"
+            --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --paths '/' '/index.html' '/styles.css' '/vendor/*'

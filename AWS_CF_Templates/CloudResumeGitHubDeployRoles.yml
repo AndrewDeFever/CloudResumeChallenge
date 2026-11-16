@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  GitHub OIDC deployment roles for Cloud Resume frontend and Lambda.
+  Imports no existing resources and does not remove the legacy deploy role.
+
+Parameters:
+  GitHubOIDCProviderArn:
+    Type: String
+    Default: arn:aws:iam::042889969210:oidc-provider/token.actions.githubusercontent.com
+    Description: Existing GitHub OIDC provider ARN. Must already exist.
+  GitHubRepo:
+    Type: String
+    Default: AndrewDeFever/CloudResumeChallenge
+    AllowedPattern: '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$'
+  ProductionBranch:
+    Type: String
+    Default: main
+    AllowedPattern: '^[A-Za-z0-9_./-]+$'
+  ResumeBucketName:
+    Type: String
+    Default: resume.subrealstudios.com
+  ResumeDistributionId:
+    Type: String
+    Default: E11F2W61OQF97D
+
+Resources:
+  CRCFrontendDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: GitHubOIDC-CRC-Frontend
+      Description: GitHub main-branch role limited to the Cloud Resume static frontend.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: TrustCloudResumeMainGitHubActions
+            Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'token.actions.githubusercontent.com:aud': sts.amazonaws.com
+                'token.actions.githubusercontent.com:sub': !Sub 'repo:${GitHubRepo}:ref:refs/heads/${ProductionBranch}'
+      Policies:
+        - PolicyName: CloudResumeFrontendPublish
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: ListFrontendBucket
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub 'arn:aws:s3:::${ResumeBucketName}'
+              - Sid: ReadCurrentHtmlAndRequiredAssets
+                Effect: Allow
+                Action: s3:GetObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/index.html'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/styles.css'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/architecture.svg'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/background.png'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/favicon.ico'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/vendor/*'
+              - Sid: PublishFrontendObjects
+                Effect: Allow
+                Action: s3:PutObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/index.html'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/styles.css'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/vendor/*'
+              - Sid: InspectAndInvalidateResumeDistribution
+                Effect: Allow
+                Action:
+                  - cloudfront:GetDistribution
+                  - cloudfront:CreateInvalidation
+                Resource: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${ResumeDistributionId}'
+
+  CRCBackendDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: GitHubOIDC-CRC-Backend
+      Description: GitHub main-branch role limited to Cloud Resume Lambda code deployments.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: TrustCloudResumeMainGitHubActions
+            Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'token.actions.githubusercontent.com:aud': sts.amazonaws.com
+                'token.actions.githubusercontent.com:sub': !Sub 'repo:${GitHubRepo}:ref:refs/heads/${ProductionBranch}'
+      Policies:
+        - PolicyName: CloudResumeLambdaCodeDeploy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: UpdateOnlyGeoFunctions
+                Effect: Allow
+                Action:
+                  - lambda:UpdateFunctionCode
+                  - lambda:GetFunction
+                Resource:
+                  - !Sub 'arn:aws:lambda:us-east-1:${AWS::AccountId}:function:GeoTracker'
+                  - !Sub 'arn:aws:lambda:us-east-1:${AWS::AccountId}:function:ReadGeoCoords'
+
+Outputs:
+  FrontendRoleArn:
+    Value: !GetAtt CRCFrontendDeployRole.Arn
+    Description: Use in CloudResumeChallengeDeploy.yml after this stack reaches CREATE_COMPLETE.
+  LambdaRoleArn:
+    Value: !GetAtt CRCBackendDeployRole.Arn
+    Description: Use in deploy.yml after this stack reaches CREATE_COMPLETE.

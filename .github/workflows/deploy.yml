@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'GeoTracker.py'
+      - 'ReadGeoCoords.py'
+      - 'requirements.txt'
+      - 'tests/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -20,7 +27,7 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-LambdaDeploy
+          role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-CRC-Backend
           aws-region: us-east-1
 
       - name: Install dependencies
