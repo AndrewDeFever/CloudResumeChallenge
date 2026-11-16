@@ -5,8 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'GeoTracker.py'
-      - 'ReadGeoCoords.py'
+      - 'lambda/**'
       - 'requirements.txt'
       - 'tests/**'
       - '.github/workflows/deploy.yml'
@@ -22,32 +21,69 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::042889969210:role/GitHubOIDC-CRC-Backend
           aws-region: us-east-1
 
-      - name: Install dependencies
+      - name: Install test dependencies
         run: pip install -r requirements.txt
 
       - name: Run unit tests
+        env:
+          AWS_DEFAULT_REGION: us-east-1
         run: python -m pytest tests
 
-      - name: Zip GeoTracker Lambda
-        run: zip lambda_geoip.zip GeoTracker.py
-
-      - name: Zip ReadGeoCoords Lambda
-        run: zip lambda_ReadGeoCoords.zip ReadGeoCoords.py
-
-      - name: Deploy Lambda function
+      - name: Package Lambda functions
+        shell: bash
         run: |
+          set -euo pipefail
+
+          mkdir -p "$RUNNER_TEMP/geotracker" "$RUNNER_TEMP/readgeocoords"
+          cp lambda/GeoTracker/app.py "$RUNNER_TEMP/geotracker/index.py"
+          cp lambda/ReadGeoCoords/app.py "$RUNNER_TEMP/readgeocoords/index.py"
+
+          (
+            cd "$RUNNER_TEMP/geotracker"
+            zip -q "$GITHUB_WORKSPACE/lambda_geoip.zip" index.py
+          )
+          (
+            cd "$RUNNER_TEMP/readgeocoords"
+            zip -q "$GITHUB_WORKSPACE/lambda_ReadGeoCoords.zip" index.py
+          )
+
+      - name: Deploy Lambda function code
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws lambda get-function --function-name GeoTracker > /dev/null
+          aws lambda get-function --function-name ReadGeoCoords > /dev/null
+
           aws lambda update-function-code \
             --function-name GeoTracker \
-            --zip-file fileb://lambda_geoip.zip
+            --zip-file fileb://lambda_geoip.zip > /dev/null
+
+          aws lambda wait function-updated --function-name GeoTracker
 
           aws lambda update-function-code \
             --function-name ReadGeoCoords \
-            --zip-file fileb://lambda_ReadGeoCoords.zip
+            --zip-file fileb://lambda_ReadGeoCoords.zip > /dev/null
+
+          aws lambda wait function-updated --function-name ReadGeoCoords
+
+      - name: Verify deployed handlers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for function_name in GeoTracker ReadGeoCoords; do
+            handler=$(aws lambda get-function-configuration \
+              --function-name "$function_name" \
+              --query Handler \
+              --output text)
+            test "$handler" = "index.lambda_handler"
+          done
