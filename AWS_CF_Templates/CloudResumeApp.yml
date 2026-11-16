@@ -1,0 +1,259 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Cloud Resume Challenge application infrastructure. Excludes GitHub deploy roles, CloudFront, OAC, and Route 53.
+
+Parameters:
+  ResumeBucketName:
+    Type: String
+    Default: resume.subrealstudios.com
+  ResumeOrigin:
+    Type: String
+    Default: https://resume.subrealstudios.com
+  CloudFrontDistributionId:
+    Type: String
+    Default: E11F2W61OQF97D
+  VisitorTableName:
+    Type: String
+    Default: GeoVisitorsByDay
+
+Resources:
+  ResumeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ResumeBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Project
+          Value: CloudResumeChallenge
+
+  ResumeBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ResumeBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOACReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action:
+              - s3:GetObject
+            Resource: !Sub '${ResumeBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistributionId}'
+
+  GeoVisitorsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref VisitorTableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: ip_date_key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ip_date_key
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expire_time
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: CloudResumeChallenge
+
+  GeoTrackerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CRC-GeoTracker-Lambda
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: PutVisitorRecord
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: !GetAtt GeoVisitorsTable.Arn
+
+  ReadGeoCoordsExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CRC-ReadGeoCoords-Lambda
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: ReadVisitorRecords
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                Resource: !GetAtt GeoVisitorsTable.Arn
+
+  GeoTrackerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GeoTracker
+      Description: Stores one geolocated visitor record per IP per UTC day.
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Handler: app.lambda_handler
+      CodeUri: ../lambda/GeoTracker/
+      Role: !GetAtt GeoTrackerExecutionRole.Arn
+      Timeout: 10
+      MemorySize: 256
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: !Ref GeoVisitorsTable
+          CORS_ORIGIN: !Ref ResumeOrigin
+
+  ReadGeoCoordsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ReadGeoCoords
+      Description: Returns stored visitor coordinates for the resume map.
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Handler: app.lambda_handler
+      CodeUri: ../lambda/ReadGeoCoords/
+      Role: !GetAtt ReadGeoCoordsExecutionRole.Arn
+      Timeout: 10
+      MemorySize: 256
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: !Ref GeoVisitorsTable
+          CORS_ORIGIN: !Ref ResumeOrigin
+
+  ResumeHttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: CloudResume-VisitorApi
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref ResumeOrigin
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+        MaxAge: 86400
+
+  ResumeApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/apigateway/CloudResume-VisitorApi
+      RetentionInDays: 30
+
+  GeoTrackerIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ResumeHttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt GeoTrackerFunction.Arn
+      PayloadFormatVersion: '2.0'
+      TimeoutInMillis: 10000
+
+  ReadGeoCoordsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ResumeHttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ReadGeoCoordsFunction.Arn
+      PayloadFormatVersion: '2.0'
+      TimeoutInMillis: 10000
+
+  TrackRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ResumeHttpApi
+      RouteKey: POST /track
+      Target: !Sub 'integrations/${GeoTrackerIntegration}'
+
+  ReadGeoCoordsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ResumeHttpApi
+      RouteKey: GET /ReadGeoCoords
+      Target: !Sub 'integrations/${ReadGeoCoordsIntegration}'
+
+  ResumeApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ResumeHttpApi
+      StageName: '$default'
+      AutoDeploy: true
+      AccessLogSettings:
+        DestinationArn: !GetAtt ResumeApiLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status","responseLength":"$context.responseLength","integrationError":"$context.integrationErrorMessage"}'
+
+  AllowApiInvokeGeoTracker:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GeoTrackerFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ResumeHttpApi}/*/POST/track'
+
+  AllowApiInvokeReadGeoCoords:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ReadGeoCoordsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ResumeHttpApi}/*/GET/ReadGeoCoords'
+
+Outputs:
+  ResumeBucketName:
+    Description: Static frontend origin bucket.
+    Value: !Ref ResumeBucket
+  VisitorTableName:
+    Description: DynamoDB visitor table.
+    Value: !Ref GeoVisitorsTable
+  GeoTrackerFunctionName:
+    Value: !Ref GeoTrackerFunction
+  ReadGeoCoordsFunctionName:
+    Value: !Ref ReadGeoCoordsFunction
+  ApiBaseUrl:
+    Description: Base URL consumed by the frontend runtime configuration.
+    Value: !Sub 'https://${ResumeHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}'
+  TrackEndpoint:
+    Value: !Sub 'https://${ResumeHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/track'
+  ReadGeoCoordsEndpoint:
+    Value: !Sub 'https://${ResumeHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/ReadGeoCoords'
