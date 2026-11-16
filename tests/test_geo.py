@@ -1,85 +1,95 @@
+import importlib.util
 import json
 import os
-from unittest.mock import patch, MagicMock
-from GeoTracker import lambda_handler
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 
-@patch("GeoTracker.boto3.resource")
-@patch("GeoTracker.requests.get")
-def test_lambda_handler_returns_200(mock_requests_get, mock_boto3_resource):
+MODULE_PATH = Path(__file__).parents[1] / "lambda" / "GeoTracker" / "app.py"
+SPEC = importlib.util.spec_from_file_location("crc_geotracker", MODULE_PATH)
+GeoTracker = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(GeoTracker)
+
+
+def setup_module():
     os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitorsByDay"
+    os.environ["CORS_ORIGIN"] = "https://resume.subrealstudios.com"
 
-    # Mock geo lookup
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
+
+def test_lambda_handler_stores_geolocated_visit():
+    event = {
+        "headers": {
+            "x-forwarded-for": "8.8.8.8",
+            "user-agent": "TestAgent",
+        },
+        "requestContext": {"http": {"method": "POST"}},
+    }
+
+    geo = {
         "country": "US",
         "region": "Oklahoma",
         "city": "Tulsa",
-        "org": "Fake ISP"
+        "org": "Fake ISP",
+        "loc": "36.1540,-95.9928",
     }
-    mock_requests_get.return_value = mock_response
 
-    # Mock DynamoDB put_item
-    mock_table = MagicMock()
-    mock_dynamodb = MagicMock()
-    mock_dynamodb.Table.return_value = mock_table
-    mock_boto3_resource.return_value = mock_dynamodb
+    with patch.object(GeoTracker, "lookup_ip", return_value=geo), patch.object(
+        GeoTracker.dynamodb, "put_item"
+    ) as put_item:
+        result = GeoTracker.lambda_handler(event, None)
 
-    # Event with IP
+    assert result["statusCode"] == 200
+    assert json.loads(result["body"])["message"] == "Geo data stored successfully"
+    put_item.assert_called_once()
+
+    item = put_item.call_args.kwargs["Item"]
+    assert item["region"]["S"] == "Oklahoma"
+    assert item["city"]["S"] == "Tulsa"
+    assert item["latitude"]["N"] == "36.154"
+    assert item["longitude"]["N"] == "-95.9928"
+
+
+def test_lambda_handler_returns_200_for_duplicate_visit():
     event = {
-        "headers": {
-            "x-forwarded-for": "8.8.8.8",
-            "user-agent": "TestAgent"
-        },
-        "requestContext": {
-            "http": {
-                "method": "POST"
-            }
-        }
-    }
-    context = {}
-    response = lambda_handler(event, context)
-
-    assert response["statusCode"] == 200
-    body = json.loads(response["body"])
-    assert body["message"] == "Geo data stored successfully"
-    assert body["geo"]["region"] == "Oklahoma"
-
-
-def test_lambda_handler_returns_200():
-    os.environ["DYNAMO_TABLE_NAME"] = "GeoVisitorsByDay"
-
-    event = {
-        "headers": {
-            "x-forwarded-for": "8.8.8.8",
-            "user-agent": "TestAgent"
-        },
-        "requestContext": {
-            "http": {
-                "method": "POST",
-                "sourceIp": "8.8.8.8"
-            }
-        }
+        "headers": {"x-forwarded-for": "8.8.8.8"},
+        "requestContext": {"http": {"method": "POST"}},
     }
 
-    response = lambda_handler(event, None)
-    assert response["statusCode"] == 200
+    geo = {
+        "country": "US",
+        "region": "Oklahoma",
+        "city": "Tulsa",
+        "org": "Fake ISP",
+        "loc": "36.1540,-95.9928",
+    }
 
-    body = json.loads(response["body"])
-    assert body["message"] in [
-        "Geo data stored successfully",
-        "Visit already recorded today"
-    ]
+    error = GeoTracker.dynamodb.exceptions.ConditionalCheckFailedException(
+        {"Error": {"Code": "ConditionalCheckFailedException", "Message": "duplicate"}},
+        "PutItem",
+    )
+
+    with patch.object(GeoTracker, "lookup_ip", return_value=geo), patch.object(
+        GeoTracker.dynamodb, "put_item", side_effect=error
+    ):
+        result = GeoTracker.lambda_handler(event, None)
+
+    assert result["statusCode"] == 200
+    assert json.loads(result["body"])["message"] == "Visit already recorded today"
+
+
 def test_lambda_handler_cors_preflight():
-    mock_event = {
-        "requestContext": {
-            "http": {
-                "method": "OPTIONS"
-            }
-        }
-    }
-    mock_context = {}
-    response = lambda_handler(mock_event, mock_context)
+    event = {"requestContext": {"http": {"method": "OPTIONS"}}}
 
-    assert response["statusCode"] == 200
-    assert "CORS preflight success" in json.loads(response["body"])["message"]
+    result = GeoTracker.lambda_handler(event, None)
+
+    assert result["statusCode"] == 200
+    assert result["headers"]["Access-Control-Allow-Origin"] == "https://resume.subrealstudios.com"
+    assert "CORS preflight success" in json.loads(result["body"])["message"]
+
+
+def test_lambda_handler_rejects_missing_ip():
+    event = {"headers": {}, "requestContext": {"http": {"method": "POST"}}}
+
+    result = GeoTracker.lambda_handler(event, None)
+
+    assert result["statusCode"] == 400
