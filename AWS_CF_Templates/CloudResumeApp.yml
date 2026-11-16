@@ -1,5 +1,4 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
 Description: Cloud Resume Challenge application infrastructure. Excludes GitHub deploy roles, CloudFront, OAC, and Route 53.
 
 Parameters:
@@ -50,8 +49,7 @@ Resources:
             Effect: Allow
             Principal:
               Service: cloudfront.amazonaws.com
-            Action:
-              - s3:GetObject
+            Action: s3:GetObject
             Resource: !Sub '${ResumeBucket.Arn}/*'
             Condition:
               StringEquals:
@@ -96,8 +94,7 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
-                Action:
-                  - dynamodb:PutItem
+                Action: dynamodb:PutItem
                 Resource: !GetAtt GeoVisitorsTable.Arn
 
   ReadGeoCoordsExecutionRole:
@@ -119,20 +116,18 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
-                Action:
-                  - dynamodb:Scan
+                Action: dynamodb:Scan
                 Resource: !GetAtt GeoVisitorsTable.Arn
 
   GeoTrackerFunction:
-    Type: AWS::Serverless::Function
+    Type: AWS::Lambda::Function
     Properties:
       FunctionName: GeoTracker
-      Description: Stores one geolocated visitor record per IP per UTC day.
+      Description: Cloud Resume visitor tracker. Real code is published from GitHub after infrastructure deployment.
       Runtime: python3.12
       Architectures:
         - x86_64
-      Handler: app.lambda_handler
-      CodeUri: ../lambda/GeoTracker/
+      Handler: index.lambda_handler
       Role: !GetAtt GeoTrackerExecutionRole.Arn
       Timeout: 10
       MemorySize: 256
@@ -140,17 +135,20 @@ Resources:
         Variables:
           DYNAMO_TABLE_NAME: !Ref GeoVisitorsTable
           CORS_ORIGIN: !Ref ResumeOrigin
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 503, "body": "GeoTracker code has not been deployed yet."}
 
   ReadGeoCoordsFunction:
-    Type: AWS::Serverless::Function
+    Type: AWS::Lambda::Function
     Properties:
       FunctionName: ReadGeoCoords
-      Description: Returns stored visitor coordinates for the resume map.
+      Description: Cloud Resume visitor reader. Real code is published from GitHub after infrastructure deployment.
       Runtime: python3.12
       Architectures:
         - x86_64
-      Handler: app.lambda_handler
-      CodeUri: ../lambda/ReadGeoCoords/
+      Handler: index.lambda_handler
       Role: !GetAtt ReadGeoCoordsExecutionRole.Arn
       Timeout: 10
       MemorySize: 256
@@ -158,6 +156,10 @@ Resources:
         Variables:
           DYNAMO_TABLE_NAME: !Ref GeoVisitorsTable
           CORS_ORIGIN: !Ref ResumeOrigin
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 503, "body": "ReadGeoCoords code has not been deployed yet."}
 
   ResumeHttpApi:
     Type: AWS::ApiGatewayV2::Api
@@ -174,6 +176,8 @@ Resources:
         AllowHeaders:
           - Content-Type
         MaxAge: 86400
+      Tags:
+        Project: CloudResumeChallenge
 
   ResumeApiLogGroup:
     Type: AWS::Logs::LogGroup
@@ -222,6 +226,8 @@ Resources:
       AccessLogSettings:
         DestinationArn: !GetAtt ResumeApiLogGroup.Arn
         Format: '{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status","responseLength":"$context.responseLength","integrationError":"$context.integrationErrorMessage"}'
+      Tags:
+        Project: CloudResumeChallenge
 
   AllowApiInvokeGeoTracker:
     Type: AWS::Lambda::Permission
