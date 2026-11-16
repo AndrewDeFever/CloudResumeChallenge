@@ -205,8 +205,9 @@
   </footer>
 
   <!-- Log visit -->
+  <script src="config.js"></script>
   <script>
-    fetch("https://njx3tbb522.execute-api.us-east-1.amazonaws.com/track", { method: "POST" });
+    fetch(window.CLOUD_RESUME_CONFIG.apiBaseUrl + "/track", { method: "POST" });
     document.getElementById('y').textContent = new Date().getFullYear();
   </script>
 
@@ -221,7 +222,7 @@
       };
     })();
 
-    const API_URL = "https://lkqaj47w3b.execute-api.us-east-1.amazonaws.com/ReadGeoCoords";
+    const API_URL = window.CLOUD_RESUME_CONFIG.apiBaseUrl + "/ReadGeoCoords";
 
     const whenMapSized = el => new Promise(res => {
       const ok = () => el.clientWidth > 0 && el.clientHeight > 0;
