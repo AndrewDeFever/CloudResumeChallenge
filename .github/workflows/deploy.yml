@@ -36,11 +36,22 @@ jobs:
       - name: Run unit tests
         run: python -m pytest tests
 
-      - name: Zip GeoTracker Lambda
-        run: zip lambda_geoip.zip GeoTracker.py
+      - name: Package GeoTracker Lambda
+        run: |
+          rm -rf build/geotracker
+          mkdir -p build/geotracker
+          pip install requests --target build/geotracker
+          cp GeoTracker.py build/geotracker/
+          cd build/geotracker
+          zip -r ../../lambda_geoip.zip .
 
-      - name: Zip ReadGeoCoords Lambda
-        run: zip lambda_ReadGeoCoords.zip ReadGeoCoords.py
+      - name: Package ReadGeoCoords Lambda
+        run: |
+          rm -rf build/readgeocoords
+          mkdir -p build/readgeocoords
+          cp ReadGeoCoords.py build/readgeocoords/
+          cd build/readgeocoords
+          zip -r ../../lambda_ReadGeoCoords.zip .
 
       - name: Deploy Lambda function
         run: |
