@@ -263,15 +263,15 @@
 
       const markers = L.markerClusterGroup();
       const heatData = [];
+      const visitorIcon = L.divIcon({
+        className: "visitor-marker-wrap",
+        html: '<span class="visitor-marker" aria-hidden="true"></span>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -10]
+      });
       data.forEach(v => {
         const latlng = [v.lat, v.lng];
-        const visitorIcon = L.divIcon({
-          className: "visitor-marker-wrap",
-          html: '<span class="visitor-marker" aria-hidden="true"></span>',
-          iconSize: [18, 18],
-          iconAnchor: [9, 9],
-          popupAnchor: [0, -10]
-        });
         markers.addLayer(L.marker(latlng, { icon: visitorIcon }).bindPopup(`<strong>${v.city}</strong><br>${v.org}<br>${v.timestamp}`));
         heatData.push([...latlng, 0.5]);
       });
