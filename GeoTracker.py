@@ -63,7 +63,6 @@ def lambda_handler(event, context):
         item["latitude"] = {"N": str(latitude)}
         item["longitude"] = {"N": str(longitude)}
         
-        print("Writing to DynamoDB (deduplicated):", item)
 
         # Conditional insert to avoid duplicate daily entries
         dynamodb.put_item(
