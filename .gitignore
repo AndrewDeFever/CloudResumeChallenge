@@ -1,8 +1,22 @@
 # Python
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
 
 # Local CRC adoption audit
 .crc-audit/
-# Generated Lambda deployment packages
+
+# Generated build and deployment artifacts
+build/
 lambda_*.zip
