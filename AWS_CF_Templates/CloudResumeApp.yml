@@ -349,6 +349,24 @@ Resources:
         ThrottlingBurstLimit: 5
         ThrottlingRateLimit: 2
 
+  GeoTrackerInvokePermission:
+    Type: AWS::Lambda::Permission
+    DeletionPolicy: Retain
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GeoTrackerFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CRCGeoApi}/*/*/track'
+
+  ReadGeoCoordsInvokePermission:
+    Type: AWS::Lambda::Permission
+    DeletionPolicy: Retain
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ReadGeoCoordsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ReadGeoCoordsApi}/*/GET/ReadGeoCoords'
+
 Outputs:
   ResumeBucketName:
     Description: Cloud Resume frontend S3 bucket.
