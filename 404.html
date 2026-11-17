@@ -6,8 +6,55 @@
   <title>404 | Andrew DeFever</title>
   <meta name="robots" content="noindex">
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .error-page{
+      min-height:calc(100dvh - 65px);
+      display:flex;
+      flex-direction:column;
+    }
+    .error-main{
+      flex:1;
+      display:grid;
+      place-items:center;
+      padding:3rem 1rem;
+      text-align:center;
+    }
+    .error-content{
+      max-width:760px;
+    }
+    .error-icon{
+      width:92px;
+      height:92px;
+      margin:0 auto 1rem;
+      color:var(--accent-2);
+      opacity:.95;
+    }
+    .error-code{
+      margin:0;
+      font-family:Orbitron,sans-serif;
+      font-size:clamp(4.5rem,10vw,7rem);
+      line-height:1;
+      letter-spacing:.05em;
+    }
+    .error-title{
+      margin:1rem 0 .6rem;
+      font-size:clamp(1.35rem,2.5vw,2rem);
+    }
+    .error-copy{
+      margin:0 auto 1.7rem;
+      color:var(--muted);
+      font-size:1.05rem;
+      line-height:1.6;
+    }
+    .error-footer{
+      text-align:center;
+      color:var(--muted);
+      padding:1.25rem 1rem 2rem;
+      font-size:.9rem;
+    }
+  </style>
 </head>
-<body>
+<body class="error-page">
   <a class="skip" href="#main">Skip to content</a>
 
   <nav>
@@ -19,25 +66,24 @@
     </div>
   </nav>
 
-  <header class="hero">
-    <div class="container">
-      <h1 class="title">404</h1>
-      <p class="tag">That path wandered off into the cloud.</p>
-      <div class="cta">
-        <a class="btn" href="/">Back to the resume</a>
-      </div>
-    </div>
-  </header>
+  <main id="main" class="error-main">
+    <div class="error-content">
+      <svg class="error-icon" viewBox="0 0 96 96" role="img" aria-label="Cloud server icon">
+        <path d="M28 72h40c10 0 18-8 18-18s-8-18-18-18h-1C64 24 54 16 42 16c-14 0-26 11-27 25C7 43 2 50 2 58c0 8 7 14 16 14h10Z"
+              fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="35" y="39" width="26" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="4"/>
+        <rect x="35" y="52" width="26" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="4"/>
+        <circle cx="56" cy="43" r="1.7" fill="currentColor"/>
+        <circle cx="56" cy="56" r="1.7" fill="currentColor"/>
+      </svg>
 
-  <main id="main" class="container">
-    <section class="card">
-      <h2>Page not found</h2>
-      <p>The page you requested does not exist, may have moved, or the URL may be incorrect.</p>
-    </section>
+      <h1 class="error-code">404</h1>
+      <h2 class="error-title">Looks like this page got lost in the cloud.</h2>
+      <p class="error-copy">The page you're looking for doesn't exist or may have moved.</p>
+      <a class="btn" href="/">Back to my resume</a>
+    </div>
   </main>
 
-  <footer class="container">
-    <div>Andrew DeFever — Cloud Resume Challenge</div>
-  </footer>
+  <footer class="error-footer">Andrew DeFever</footer>
 </body>
 </html>
