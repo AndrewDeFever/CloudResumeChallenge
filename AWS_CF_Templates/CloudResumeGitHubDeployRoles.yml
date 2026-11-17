@@ -75,6 +75,7 @@ Resources:
                 Action: s3:PutObject
                 Resource:
                   - !Sub 'arn:aws:s3:::${ResumeBucketName}/index.html'
+                  - !Sub 'arn:aws:s3:::${ResumeBucketName}/404.html'
                   - !Sub 'arn:aws:s3:::${ResumeBucketName}/styles.css'
                   - !Sub 'arn:aws:s3:::${ResumeBucketName}/vendor/*'
 
