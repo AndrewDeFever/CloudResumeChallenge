@@ -55,7 +55,7 @@
 
   <main id="main" class="container">
     <section id="summary" class="card">
-      <h2>Professional Summary</h2>
+      <h2><span class="section-icon icon-user-round" aria-hidden="true"></span>Professional Summary</h2>
       <p>AWS Certified Solutions Architect – Associate, AWS Certified Cloud Practitioner, and CompTIA Security+ certified IT professional with 10+ years of experience across network operations, systems analysis, incident response, and cloud engineering. I build and support reliable systems, automate repeatable work, and apply practical security controls across AWS, CI/CD, and production operations. My background combines deep NOC troubleshooting experience with hands-on cloud architecture, infrastructure as code, and serverless application development.</p>
 
       <figure style="margin:1rem 0 0;">
@@ -65,7 +65,7 @@
     </section>
 
     <section id="about" class="card">
-      <h2>About This Site</h2>
+      <h2><span class="section-icon icon-cloud" aria-hidden="true"></span>About This Site</h2>
       <p class="meta">Built for the <strong>Cloud Resume Challenge</strong> to demonstrate cloud deployment, automation, security hardening, and a small serverless app.</p>
 
       <div class="grid grid-2">
@@ -109,7 +109,7 @@
     </section>
 
     <section id="certs" class="card">
-      <h2>Certifications</h2>
+      <h2><span class="section-icon icon-award" aria-hidden="true"></span>Certifications</h2>
       <div class="badges" aria-label="Certification badges">
         <a class="btn" href="./CloudResumeChallenge/AWS-Certified-Cloud-Practitioner-certificate.pdf" target="_blank" rel="noreferrer">
           <i class="fa-brands fa-aws"></i> AWS Cloud Practitioner (Certificate)
@@ -126,7 +126,7 @@
     </section>
 
     <section id="skills" class="card">
-      <h2>Technical Skills</h2>
+      <h2><span class="section-icon icon-wrench" aria-hidden="true"></span>Technical Skills</h2>
       <ul>
         <li><strong>AWS:</strong> S3, CloudFront, Route 53, ACM, IAM, API Gateway, Lambda, DynamoDB, CloudWatch, CloudFormation, serverless architecture, OIDC-based deployments</li>
         <li><strong>DevOps & Automation:</strong> GitHub Actions, CI/CD, infrastructure as code, Python, Bash, Linux, deployment automation, change-set driven infrastructure updates</li>
@@ -136,7 +136,7 @@
     </section>
 
     <section id="projects" class="card">
-      <h2>Projects</h2>
+      <h2><span class="section-icon icon-workflow" aria-hidden="true"></span>Projects</h2>
       <ul>
         <li><strong><a href="https://resume.subrealstudios.com" target="_blank" rel="noreferrer">Cloud Resume Challenge</a></strong> — Production AWS resume site using private S3 + CloudFront, Route 53, ACM, API Gateway HTTP APIs, Lambda, DynamoDB, CloudFormation, GitHub Actions OIDC, security headers, cache controls, and least-privilege IAM.</li>
         <li><strong><a href="https://wnp.subrealstudios.com" target="_blank" rel="noreferrer">Weather &amp; Power Operations App</a></strong> — Internal operational application that consolidates outage, weather, power, and service-management context to improve NOC situational awareness and response workflows.</li>
@@ -146,7 +146,7 @@
     </section>
 
    <section id="experience" class="card">
-  <h2>Experience</h2>
+  <h2><span class="section-icon icon-briefcase-business" aria-hidden="true"></span>Experience</h2>
   <ul>
     <li><strong>Systems Analyst II — ONE Gas</strong> (2019 – Present)<br>
       - Proactively monitor and maintain critical business systems, networks, and applications, reducing unplanned downtime and improving operational reliability.<br>
@@ -182,7 +182,7 @@
 
 
     <section id="education" class="card">
-      <h2>Education</h2>
+      <h2><span class="section-icon icon-graduation-cap" aria-hidden="true"></span>Education</h2>
       <ul>
         <li><strong>Bachelor’s in Psychology</strong>, Minor in Philosophy — May 2012</li>
       </ul>
@@ -192,11 +192,11 @@
 
     <section id="visitors" class="grid grid-2">
       <div class="card">
-        <h2>Visitor Map</h2>
+        <h2><span class="section-icon icon-map-pinned" aria-hidden="true"></span>Visitor Map</h2>
         <div id="map" role="img" aria-label="World map of recent visitors"></div>
       </div>
       <div class="card">
-        <h2>Recent Visitors</h2>
+        <h2><span class="section-icon icon-users-round" aria-hidden="true"></span>Recent Visitors</h2>
         <p id="visit-count" class="meta">Visits: loading…</p>
         <ul id="visitor-list" aria-live="polite"></ul>
       </div>
@@ -263,9 +263,16 @@
 
       const markers = L.markerClusterGroup();
       const heatData = [];
+      const visitorIcon = L.divIcon({
+        className: "visitor-marker-wrap",
+        html: '<span class="visitor-marker" aria-hidden="true"></span>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -10]
+      });
       data.forEach(v => {
         const latlng = [v.lat, v.lng];
-        markers.addLayer(L.marker(latlng).bindPopup(`<strong>${v.city}</strong><br>${v.org}<br>${v.timestamp}`));
+        markers.addLayer(L.marker(latlng, { icon: visitorIcon }).bindPopup(`<strong>${v.city}</strong><br>${v.org}<br>${v.timestamp}`));
         heatData.push([...latlng, 0.5]);
       });
 
