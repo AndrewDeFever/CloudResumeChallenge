@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'CloudResumeChallenge.html'
+      - '404.html'
       - 'styles.css'
       - 'vendor/**'
       - '.github/workflows/CloudResumeChallengeDeploy.yml'
@@ -36,6 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           test -s CloudResumeChallenge.html
+          test -s 404.html
           test -s styles.css
           test -s vendor/leaflet/leaflet.js
           test -s vendor/leaflet/leaflet.css
@@ -101,6 +103,9 @@ jobs:
           aws s3 cp styles.css "s3://$RESUME_BUCKET/styles.css" \
             --content-type 'text/css; charset=utf-8' \
             --cache-control 'public,max-age=300'
+          aws s3 cp 404.html "s3://$RESUME_BUCKET/404.html" \
+            --content-type 'text/html; charset=utf-8' \
+            --cache-control 'public,max-age=300'
           aws s3 sync vendor/ "s3://$RESUME_BUCKET/vendor/" \
             --cache-control 'public,max-age=3600' \
             --exclude '*.map'
@@ -111,4 +116,4 @@ jobs:
           set -euo pipefail
           aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-            --paths '/' '/index.html' '/styles.css' '/vendor/*'
+            --paths '/' '/index.html' '/404.html' '/styles.css' '/vendor/*'
