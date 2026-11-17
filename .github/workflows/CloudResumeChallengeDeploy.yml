@@ -99,15 +99,15 @@ jobs:
           set -euo pipefail
           aws s3 cp CloudResumeChallenge.html "s3://$RESUME_BUCKET/index.html" \
             --content-type 'text/html; charset=utf-8' \
-            --cache-control 'public,max-age=300'
+            --cache-control 'public,max-age=0,s-maxage=300,must-revalidate'
           aws s3 cp styles.css "s3://$RESUME_BUCKET/styles.css" \
             --content-type 'text/css; charset=utf-8' \
-            --cache-control 'public,max-age=300'
+            --cache-control 'public,max-age=300,s-maxage=86400,must-revalidate'
           aws s3 cp 404.html "s3://$RESUME_BUCKET/404.html" \
             --content-type 'text/html; charset=utf-8' \
-            --cache-control 'public,max-age=300'
+            --cache-control 'public,max-age=60,s-maxage=300,must-revalidate'
           aws s3 sync vendor/ "s3://$RESUME_BUCKET/vendor/" \
-            --cache-control 'public,max-age=3600' \
+            --cache-control 'public,max-age=86400,s-maxage=86400' \
             --exclude '*.map'
 
       - name: Invalidate production CloudFront cache
