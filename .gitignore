@@ -4,3 +4,5 @@ __pycache__/
 
 # Local CRC adoption audit
 .crc-audit/
+# Generated Lambda deployment packages
+lambda_*.zip
