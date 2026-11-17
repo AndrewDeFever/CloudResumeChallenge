@@ -49,7 +49,6 @@
         <a class="btn" href="mailto:AndrewDeFever@gmail.com"><i class="fa-solid fa-envelope"></i>Email</a>
         <a class="btn" href="https://github.com/AndrewDeFever" target="_blank" rel="noreferrer"><i class="fa-brands fa-github"></i>GitHub</a>
         <a class="btn" href="https://www.linkedin.com/in/andrewdefever/" target="_blank" rel="noreferrer"><i class="fa-brands fa-linkedin"></i>LinkedIn</a>
-        <a class="btn" href="./CloudResumeChallenge/Andrew-DeFever-Resume-2025-AWS.pdf" download><i class="fa-solid fa-file-arrow-down"></i>Resume</a>
       </div>
     </div>
   </header>
@@ -73,26 +72,26 @@
         <div>
           <h3 class="meta" style="margin:.2rem 0 .4rem;">Frontend & DNS</h3>
           <ul>
-            <li>Static site on <strong><span class="tooltip" data-tip="Object storage hosting the static site.">Amazon S3</span></strong> served globally through <strong><span class="tooltip" data-tip="CDN in front of S3; caching, TLS, and edge delivery.">CloudFront</span></strong> (HTTPS via <strong><span class="tooltip" data-tip="AWS Certificate Manager — provisions and auto‑renews TLS/SSL certificates.">ACM</span></strong>).</li>
-            <li>Public DNS with <strong><span class="tooltip" data-tip="Managed DNS with ALIAS to CloudFront; supports apex without A records.">Route 53</span></strong> (apex <em>ALIAS</em> to CloudFront; optional <code>www</code> redirect).</li>
-            <li><strong><span class="tooltip" data-tip="Automated storage class that lowers S3 costs with no performance impact.">S3 Intelligent‑Tiering</span></strong> for assets and <strong><span class="tooltip" data-tip="Writes server access logs to a dedicated logging bucket for audits.">Server Access Logging</span></strong>.</li>
-            <li>Automatic <strong><span class="tooltip" data-tip="Tell CloudFront to purge cached files so new versions serve immediately.">CloudFront invalidations</span></strong> on deploy for zero‑stale rollouts.</li>
+            <li>Static site assets are stored in a private <strong>Amazon S3</strong> bucket and delivered globally through <strong>CloudFront</strong> over HTTPS.</li>
+            <li><strong>Route 53</strong> provides public DNS and <strong>ACM</strong> manages the TLS certificate used by CloudFront.</li>
+            <li>The S3 origin blocks public access and is reachable through a CloudFront <strong>Origin Access Control (OAC)</strong>.</li>
+            <li>Deploys apply asset-specific <strong>Cache-Control</strong> metadata and targeted <strong>CloudFront invalidations</strong> for predictable cache behavior.</li>
           </ul>
 
           <h3 class="meta" style="margin:.8rem 0 .4rem;">Serverless Backend</h3>
           <ul>
-            <li><strong><span class="tooltip" data-tip="Managed API front door that handles routing, CORS, auth, and throttling.">API Gateway</span></strong> → <strong><span class="tooltip" data-tip="Serverless compute that runs your visit‑logging code on demand.">Lambda (Python)</span></strong> → <strong><span class="tooltip" data-tip="Managed NoSQL key‑value store for visit records.">DynamoDB</span></strong> for visit tracking and geo stats.</li>
-            <li><strong><span class="tooltip" data-tip="Usage plans and API keys to cap requests per client; protects the backend.">Rate limiting</span></strong> with usage plans & API keys; CORS locked to site origin.</li>
-            <li><strong><span class="tooltip" data-tip="Centralized logs and metrics for debugging and insights.">CloudWatch</span></strong> for observability.</li>
+            <li><strong>API Gateway HTTP APIs</strong> → <strong>Lambda (Python)</strong> → <strong>DynamoDB</strong> handles visit tracking and geolocation data.</li>
+            <li>API stages use request throttling and CORS restricted to the resume origin; Lambda invoke permissions are scoped to the required API routes.</li>
+            <li><strong>CloudWatch Logs</strong> provides operational visibility with managed log retention.</li>
           </ul>
         </div>
 
         <div class="card" style="background:rgba(255,255,255,.04)">
           <h3 class="meta" style="margin:.2rem 0 .4rem;">CI/CD & Security</h3>
           <ul>
-            <li><strong>GitHub Actions</strong> with <strong><span class="tooltip" data-tip="OpenID Connect: short‑lived credentials so CI can assume an AWS role — no long‑lived keys.">OIDC</span></strong> to assume a deploy role (no stored AWS keys).</li>
-            <li><strong><span class="tooltip" data-tip="Scope roles/policies to the minimum: S3 sync and CloudFront invalidation only.">Least‑privilege IAM</span></strong>; HTTPS enforced end‑to‑end.</li>
-            <li>Optional <strong><span class="tooltip" data-tip="Encrypt logs/artifacts with customer‑managed keys when needed.">KMS (SSE‑KMS)</span></strong> on logs/artifacts.</li>
+            <li><strong>GitHub Actions</strong> uses <strong>OIDC</strong> to obtain short-lived AWS credentials without storing long-lived access keys.</li>
+            <li>The application stack is managed with <strong>CloudFormation</strong>; infrastructure changes are reviewed through change sets before execution instead of auto-deploying production infrastructure.</li>
+            <li><strong>Least-privilege IAM</strong>, dedicated Lambda runtime roles, private S3 origin access, HTTPS enforcement, and CloudFront security response headers reduce the public attack surface.</li>
           </ul>
 
           <h3 class="meta" style="margin:.8rem 0 .4rem;">UI Features</h3>
@@ -120,6 +119,7 @@
         </a>
       </div>
       <ul>
+        <li>AWS Certified Solutions Architect – Associate (SAA-C03) — Oct 2025</li>
         <li>AWS Certified Cloud Practitioner — Jul 2025</li>
         <li>CompTIA Security+ (SY0-701) — Jun 2025</li>
       </ul>
@@ -128,17 +128,20 @@
     <section id="skills" class="card">
       <h2>Technical Skills</h2>
       <ul>
-        <li><strong>AWS:</strong> S3 (Static Hosting, Intelligent‑Tiering, Server Access Logging), CloudFront (TLS, invalidations), Route 53, ACM, IAM (least‑privilege + OIDC roles), API Gateway (usage plans/rate limiting), Lambda, DynamoDB, CloudWatch, KMS (SSE‑KMS), GitHub Actions OIDC</li>
-        <li><strong>Networking:</strong> IP/Ethernet, BGP, MPLS, IPVPN, E‑Line, VPLS, VLANs, firewall policy, DNS (BIND)</li>
-        <li><strong>Systems:</strong> Linux CLI, sysadmin, SNMP monitoring, Netcool, Cacti, SolarWinds, Infinera, Cisco IOS/NX‑OS, JunOS</li>
-        <li><strong>Security:</strong> Security+; DDoS mitigation (RADware), IAM best practices, secure routing via GRE tunneling</li>
+        <li><strong>AWS:</strong> S3, CloudFront, Route 53, ACM, IAM, API Gateway, Lambda, DynamoDB, CloudWatch, CloudFormation, serverless architecture, OIDC-based deployments</li>
+        <li><strong>DevOps & Automation:</strong> GitHub Actions, CI/CD, infrastructure as code, Python, Bash, Linux, deployment automation, change-set driven infrastructure updates</li>
+        <li><strong>Networking & Operations:</strong> IP/Ethernet, BGP, MPLS, IPVPN, E-Line, VPLS, VLANs, DNS, incident response, outage coordination, enterprise monitoring, multi-vendor troubleshooting</li>
+        <li><strong>Security:</strong> CompTIA Security+; least-privilege IAM, cloud hardening, access control, OIDC federation, DDoS mitigation, firewall policy, secure routing</li>
       </ul>
     </section>
 
     <section id="projects" class="card">
       <h2>Projects</h2>
       <ul>
-        <li><strong>Cloud Resume Challenge</strong> — S3 + CloudFront resume site; visitor tracker via API Gateway, Lambda (Python), DynamoDB; rate‑limited API; GitHub Actions OIDC deploys.</li>
+        <li><strong>Cloud Resume Challenge</strong> — Production AWS resume site using private S3 + CloudFront, Route 53, ACM, API Gateway HTTP APIs, Lambda, DynamoDB, CloudFormation, GitHub Actions OIDC, security headers, cache controls, and least-privilege IAM.</li>
+        <li><strong>Weather &amp; Power Operations App</strong> — Internal operational application that consolidates outage, weather, power, and service-management context to improve NOC situational awareness and response workflows.</li>
+        <li><strong>AWS Security Coach</strong> — Serverless AWS posture project focused on surfacing security findings and turning them into practical remediation guidance.</li>
+        <li><strong>Trendcraft</strong> — Cloud-native intelligence workflow using AWS serverless services, queues, object storage, and CI/CD to move research through collection, processing, review, and publishing stages.</li>
       </ul>
     </section>
 
