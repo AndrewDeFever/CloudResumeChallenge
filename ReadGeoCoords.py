@@ -18,16 +18,10 @@ def clean_decimals(obj):
         return obj
 
 def lambda_handler(event, context):
-    headers = {
-        "Access-Control-Allow-Origin": "https://www.subrealstudios.com",
-        "Access-Control-Allow-Methods": "GET,OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-    }
 
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {
             "statusCode": 200,
-            "headers": headers,
             "body": json.dumps({"message": "CORS preflight OK"})
         }
 
@@ -53,7 +47,6 @@ def lambda_handler(event, context):
         # <-- RETURN MAPPED, not 'cleaned' which doesn't exist
         return {
             "statusCode": 200,
-            "headers": headers,
             "body": json.dumps(mapped)
         }
 
@@ -62,7 +55,6 @@ def lambda_handler(event, context):
         import traceback; traceback.print_exc()
         return {
             "statusCode": 500,
-            "headers": headers,
             "body": json.dumps({
                 "message": "Internal Server Error",
                 "error": str(e),

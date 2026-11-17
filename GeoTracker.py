@@ -8,17 +8,11 @@ import requests
 dynamodb = boto3.client("dynamodb")
 
 def lambda_handler(event, context):
-    headers = {
-        "Access-Control-Allow-Origin": "https://www.subrealstudios.com",
-        "Access-Control-Allow-Methods": "OPTIONS,POST",
-        "Access-Control-Allow-Headers": "Content-Type"
-    }
 
     # CORS preflight
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {
             "statusCode": 200,
-            "headers": headers,
             "body": json.dumps({"message": "CORS preflight success"})
         }
 
@@ -29,7 +23,6 @@ def lambda_handler(event, context):
     if not ip:
         return {
             "statusCode": 400,
-            "headers": headers,
             "body": json.dumps({"message": "IP address could not be resolved, skipping write."})
         }
 
@@ -81,7 +74,6 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
-            "headers": headers,
             "body": json.dumps({
                 "message": "Geo data stored successfully",
                 "ip": ip,
@@ -98,7 +90,6 @@ def lambda_handler(event, context):
         print(f"Visitor {ip} already recorded today — skipping.")
         return {
             "statusCode": 200,
-            "headers": headers,
             "body": json.dumps({
                 "message": "Visit already recorded today",
                 "ip": ip
@@ -109,7 +100,6 @@ def lambda_handler(event, context):
         print("Error during Lambda execution:", str(e))
         return {
             "statusCode": 500,
-            "headers": headers,
             "body": json.dumps({
                 "message": "Internal Server Error",
                 "error": str(e)
