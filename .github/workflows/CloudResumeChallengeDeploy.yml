@@ -46,6 +46,10 @@ jobs:
           test -s vendor/leaflet-markercluster/MarkerCluster.css
           test -s vendor/leaflet-markercluster/MarkerCluster.Default.css
           test -s vendor/leaflet-heat/leaflet-heat.js
+          test -s vendor/lucide/LICENSE
+          for icon in user-round cloud award wrench workflow briefcase-business graduation-cap map-pinned users-round; do
+            test -s "vendor/lucide/$icon.svg"
+          done
           grep -Fq 'server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base' CloudResumeChallenge.html
           if grep -Eq 'basemaps\.cartocdn\.com' CloudResumeChallenge.html; then
             echo 'Refusing to deploy HTML referencing the retired CARTO map URL.' >&2
