@@ -1,0 +1,375 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >-
+  Cloud Resume Challenge production application resources.
+  CloudFormation-managed production application stack.
+
+Parameters:
+  LambdaArtifactBucket:
+    Type: String
+    Default: crc-deploy-artifacts-042889969210-us-east-1
+
+Resources:
+
+  ResumeBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: resume.subrealstudios.com
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: false
+            BlockedEncryptionTypes:
+              EncryptionType:
+                - SSE-C
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      Tags:
+        - Key: Project
+          Value: CloudResumeChallenge
+        - Key: Environment
+          Value: Prod
+        - Key: Owner
+          Value: AndrewDeFever
+        - Key: Purpose
+          Value: ResumeWebsite
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Repository
+          Value: AndrewDeFever/CloudResumeChallenge
+        - Key: CostCenter
+          Value: PersonalLearning
+        - Key: Component
+          Value: Frontend
+
+  GeoVisitorsByDay:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: GeoVisitorsByDay
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: ip_address
+          AttributeType: S
+        - AttributeName: visit_date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ip_address
+          KeyType: HASH
+        - AttributeName: visit_date
+          KeyType: RANGE
+      DeletionProtectionEnabled: false
+
+  GeoTrackerLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /aws/lambda/GeoTracker
+      RetentionInDays: 60
+      LogGroupClass: STANDARD
+
+  ReadGeoCoordsLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /aws/lambda/ReadGeoCoords
+      RetentionInDays: 60
+      LogGroupClass: STANDARD
+
+  GeoTrackerRuntimeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CRC-GeoTracker-Runtime
+      Description: Runtime role for the GeoTracker Lambda function.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: GeoTrackerRuntimeAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: WriteGeoVisitorsByDay
+                Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: !GetAtt GeoVisitorsByDay.Arn
+              - Sid: WriteGeoTrackerLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub '${GeoTrackerLogGroup.Arn}:*'
+      Tags:
+        - Key: Project
+          Value: CloudResumeChallenge
+        - Key: Environment
+          Value: Prod
+        - Key: Owner
+          Value: AndrewDeFever
+        - Key: Purpose
+          Value: ResumeWebsite
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Repository
+          Value: AndrewDeFever/CloudResumeChallenge
+        - Key: CostCenter
+          Value: PersonalLearning
+        - Key: Component
+          Value: Backend
+
+  ReadGeoCoordsRuntimeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CRC-ReadGeoCoords-Runtime
+      Description: Runtime role for the ReadGeoCoords Lambda function.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: ReadGeoCoordsRuntimeAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: ReadGeoVisitorsByDay
+                Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                Resource: !GetAtt GeoVisitorsByDay.Arn
+              - Sid: WriteReadGeoCoordsLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub '${ReadGeoCoordsLogGroup.Arn}:*'
+      Tags:
+        - Key: Project
+          Value: CloudResumeChallenge
+        - Key: Environment
+          Value: Prod
+        - Key: Owner
+          Value: AndrewDeFever
+        - Key: Purpose
+          Value: ResumeWebsite
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Repository
+          Value: AndrewDeFever/CloudResumeChallenge
+        - Key: CostCenter
+          Value: PersonalLearning
+        - Key: Component
+          Value: Backend
+
+  GeoTrackerFunction:
+    Type: AWS::Lambda::Function
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      FunctionName: GeoTracker
+      Runtime: python3.13
+      Handler: GeoTracker.lambda_handler
+      Role: !GetAtt GeoTrackerRuntimeRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaArtifactBucket
+        S3Key: import-baseline/GeoTracker-live.zip
+      MemorySize: 128
+      Timeout: 3
+      PackageType: Zip
+      Architectures:
+        - arm64
+      EphemeralStorage:
+        Size: 512
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: GeoVisitorsByDay
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: /aws/lambda/GeoTracker
+
+  ReadGeoCoordsFunction:
+    Type: AWS::Lambda::Function
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      FunctionName: ReadGeoCoords
+      Runtime: python3.13
+      Handler: ReadGeoCoords.lambda_handler
+      Role: !GetAtt ReadGeoCoordsRuntimeRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaArtifactBucket
+        S3Key: import-baseline/ReadGeoCoords-live.zip
+      MemorySize: 128
+      Timeout: 3
+      PackageType: Zip
+      Architectures:
+        - x86_64
+      EphemeralStorage:
+        Size: 512
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: GeoVisitorsByDay
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: /aws/lambda/ReadGeoCoords
+
+  CRCGeoApi:
+    Type: AWS::ApiGatewayV2::Api
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: CRCGeo
+      ProtocolType: HTTP
+      RouteSelectionExpression: '$request.method $request.path'
+      DisableExecuteApiEndpoint: false
+      CorsConfiguration:
+        AllowCredentials: false
+        AllowHeaders:
+          - content-type
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowOrigins:
+          - https://resume.subrealstudios.com
+        MaxAge: 0
+
+  CRCGeoIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref CRCGeoApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      IntegrationUri: arn:aws:lambda:us-east-1:042889969210:function:GeoTracker
+      PayloadFormatVersion: '2.0'
+      TimeoutInMillis: 30000
+      ConnectionType: INTERNET
+
+  CRCGeoTrackRoute:
+    Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref CRCGeoApi
+      RouteKey: 'ANY /track'
+      AuthorizationType: NONE
+      Target: !Sub 'integrations/${CRCGeoIntegration}'
+
+  CRCGeoDefaultStage:
+    Type: AWS::ApiGatewayV2::Stage
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref CRCGeoApi
+      StageName: '$default'
+      AutoDeploy: true
+      DefaultRouteSettings:
+        DetailedMetricsEnabled: false
+        ThrottlingBurstLimit: 5
+        ThrottlingRateLimit: 2
+
+  ReadGeoCoordsApi:
+    Type: AWS::ApiGatewayV2::Api
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: ReadGeoCoordsAPI
+      ProtocolType: HTTP
+      RouteSelectionExpression: '$request.method $request.path'
+      DisableExecuteApiEndpoint: false
+      CorsConfiguration:
+        AllowCredentials: false
+        AllowHeaders:
+          - content-type
+        AllowMethods:
+          - GET
+          - OPTIONS
+        AllowOrigins:
+          - https://resume.subrealstudios.com
+        MaxAge: 0
+
+  ReadGeoCoordsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref ReadGeoCoordsApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      IntegrationUri: arn:aws:lambda:us-east-1:042889969210:function:ReadGeoCoords
+      PayloadFormatVersion: '2.0'
+      TimeoutInMillis: 30000
+      ConnectionType: INTERNET
+
+  ReadGeoCoordsGetRoute:
+    Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref ReadGeoCoordsApi
+      RouteKey: 'GET /ReadGeoCoords'
+      AuthorizationType: NONE
+      Target: !Sub 'integrations/${ReadGeoCoordsIntegration}'
+
+  ReadGeoCoordsDefaultStage:
+    Type: AWS::ApiGatewayV2::Stage
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref ReadGeoCoordsApi
+      StageName: '$default'
+      AutoDeploy: true
+      DefaultRouteSettings:
+        DetailedMetricsEnabled: false
+        ThrottlingBurstLimit: 5
+        ThrottlingRateLimit: 2
+
+Outputs:
+  ResumeBucketName:
+    Description: Cloud Resume frontend S3 bucket.
+    Value: !Ref ResumeBucket
+
+  GeoVisitorsByDayTableName:
+    Description: DynamoDB table used by the Cloud Resume geolocation functions.
+    Value: !Ref GeoVisitorsByDay
+
+  GeoTrackerFunctionName:
+    Description: GeoTracker Lambda function name.
+    Value: !Ref GeoTrackerFunction
+
+  ReadGeoCoordsFunctionName:
+    Description: ReadGeoCoords Lambda function name.
+    Value: !Ref ReadGeoCoordsFunction
+
+  CRCGeoApiEndpoint:
+    Description: Public endpoint for the CRCGeo HTTP API.
+    Value: !Sub 'https://${CRCGeoApi}.execute-api.${AWS::Region}.amazonaws.com'
+
+  ReadGeoCoordsApiEndpoint:
+    Description: Public endpoint for the ReadGeoCoords HTTP API.
+    Value: !Sub 'https://${ReadGeoCoordsApi}.execute-api.${AWS::Region}.amazonaws.com'
