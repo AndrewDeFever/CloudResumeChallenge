@@ -10,7 +10,7 @@ A serverless web resume hosted on AWS using S3, CloudFront, and Route 53, with a
 │   ├── deploy.yml
 │   └── CloudResumeChallengeDeploy.yml
 ├── AWS_CF_Templates/
-│   └── GeoTrackerLambdaStack.yml
+│   └── CloudResumeApp.yml
 ├── tests/
 │   ├── __init__.py
 │   └── test_geo.py
@@ -18,7 +18,6 @@ A serverless web resume hosted on AWS using S3, CloudFront, and Route 53, with a
 ├── vendor/                  # Vendored mapping dependencies
 ├── docs/PRODUCTION-ARCHITECTURE.md
 ├── GeoTracker.py
-├── lambda_geoip.zip
 ├── LICENSE
 ├── README.md
 └── requirements.txt
